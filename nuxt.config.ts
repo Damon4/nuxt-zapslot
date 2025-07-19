@@ -14,4 +14,9 @@ export default defineNuxtConfig({
     fallback: 'light',
     dataValue: 'theme',
   },
+  app: {
+    head: {
+      link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    },
+  },
 })

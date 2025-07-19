@@ -1,6 +1,10 @@
+<script setup lang="ts">
+import { AppNavbar } from '#components'
+</script>
+
 <template>
   <div class="flex min-h-screen flex-col">
-    <AppNavBar />
+    <AppNavbar />
     <main>
       <slot />
     </main>
