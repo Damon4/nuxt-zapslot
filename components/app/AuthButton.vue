@@ -7,7 +7,13 @@ const session = authClient.useSession()
   <button
     v-if="!session?.data"
     class="btn btn-accent"
-    @click="() => authClient.signIn.social({ provider: 'github' })"
+    @click="
+      () =>
+        authClient.signIn.social({
+          provider: 'github',
+          callbackURL: '/dashboard',
+        })
+    "
   >
     Sign in with GitHub
     <Icon name="tabler:brand-github" size="24" />
