@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       user: session.user,
-      session: session,
+      session: session.session,
     }
   } catch (error) {
     console.error('Get session error:', error)
