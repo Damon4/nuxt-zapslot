@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { AppNavbar } from '#components'
+
+const authStore = useAuthStore()
+await authStore.init()
 </script>
 
 <template>

@@ -1,26 +1,30 @@
 <script setup lang="ts">
-import { NuxtLink } from '#components'
 import AuthButton from '~/components/app/AuthButton.vue'
-import { authClient } from '~/lib/auth-client'
-const session = authClient.useSession()
+
+// Use Pinia store for auth state
+const authStore = useAuthStore()
 </script>
 
 <template>
   <div class="navbar bg-primary text-primary-content">
     <div class="navbar-start">
-      <NuxtLink class="btn btn-ghost text-xl">
+      <NuxtLink
+        class="btn btn-ghost text-xl"
+        :to="authStore.isAuthenticated ? '/dashboard' : '/'"
+      >
         <img src="/logo.svg" width="40" alt="Discover Nuxt" >
         ZapSlot
       </NuxtLink>
     </div>
     <div class="navbar-end">
-      <div v-if="session?.data" class="dropdown dropdown-end">
+      <!-- Authenticated user dropdown -->
+      <div
+        v-if="authStore.isAuthenticated && authStore?.user"
+        class="dropdown dropdown-end"
+      >
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
           <div class="w-10 rounded-full">
-            <img
-              alt="User avatar"
-              :src="session.data.user?.image ?? undefined"
-            >
+            <img alt="User avatar" :src="authStore.user.image ?? undefined" >
           </div>
         </div>
         <ul
@@ -30,13 +34,19 @@ const session = authClient.useSession()
           <li>
             <NuxtLink to="/dashboard">Dashboard</NuxtLink>
           </li>
+          <li>
+            <NuxtLink to="/profile">Profile</NuxtLink>
+          </li>
           <hr class="my-2" >
           <li>
-            <button @click="authClient.signOut()">Logout</button>
+            <button @click="authStore.signOut()">Logout</button>
           </li>
         </ul>
       </div>
-      <AuthButton v-if="!session?.data" />
+
+      <!-- Unauthenticated user - show auth button -->
+      <AuthButton v-else />
+
       <AppThemeToggle class="ml-4" />
     </div>
   </div>

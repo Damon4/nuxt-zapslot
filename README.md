@@ -1,4 +1,51 @@
-# Nuxt Minimal Starter
+# ZapSlot - Nuxt 3 Authentication App
+
+A modern Nuxt 3 application with authentication, user profiles, and dashboard functionality.
+
+## Features
+
+- 🔐 **Authentication**: GitHub OAuth integration using Better Auth
+- 👤 **User Profiles**: Complete profile management with editing capabilities
+- 📊 **Dashboard**: User dashboard with activity overview
+- 🎨 **Modern UI**: Tailwind CSS with DaisyUI components
+- 🔒 **Type Safety**: Full TypeScript support
+- 💾 **Database**: PostgreSQL with Prisma ORM
+- 🌙 **Theme Support**: Light/dark mode toggle
+- 🛡️ **Server-Side Authentication**: Protected routes with SSR security
+
+## Authentication Architecture
+
+This application implements **server-side authentication** for improved security:
+
+### Server-Side Protection
+- Routes `/dashboard` and `/profile` are protected by server-side middleware
+- Authentication is checked before page rendering (SSR)
+- Unauthorized users are redirected before sensitive data loads
+- All API endpoints require valid authentication
+
+### Security Features
+- No client-side authentication bypass possible
+- Protected data is never loaded for unauthenticated users
+- Server-side session validation using Better Auth
+- Secure cookie-based session management
+
+### Implementation Details
+- `middleware/auth.global.ts` - Global server-side authentication middleware
+- `server/api/auth/get-session.ts` - Session validation endpoint
+- `server/utils/auth.ts` - Server-side authentication utilities
+- `composables/useAuth.ts` - Client-side authentication composable
+
+## Pages
+
+- `/` - Home page with authentication
+- `/profile` - User profile page (authenticated users only)
+- `/dashboard` - User dashboard (authenticated users only)
+
+## API Endpoints
+
+- `GET /api/user/profile` - Fetch user profile data
+- `PATCH /api/user/profile` - Update user profile
+>>>>>>> Stashed changes
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 

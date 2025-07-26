@@ -1,25 +1,29 @@
 <script setup lang="ts">
-import { authClient } from '~/lib/auth-client'
-const session = authClient.useSession()
+import { useAuthStore } from '#imports'
+
+// Use Pinia store for auth state
+const authStore = useAuthStore()
 </script>
 
 <template>
-  <button
-    v-if="!session?.data"
-    class="btn btn-accent"
-    @click="
-      () =>
-        authClient.signIn.social({
-          provider: 'github',
-          callbackURL: '/dashboard',
-        })
-    "
-  >
-    Sign in with GitHub
-    <Icon name="tabler:brand-github" size="24" />
-  </button>
-  <div v-else>
-    <button class="btn btn-secondary" @click="authClient.signOut()">
+  <div>
+    <!-- Sign in button for unauthenticated users -->
+    <button
+      v-if="!authStore.isAuthenticated"
+      class="btn btn-accent"
+      :disabled="authStore.loading"
+      @click="() => authStore.signIn()"
+    >
+      Sign in with GitHub
+      <span
+        v-if="authStore.loading"
+        class="loading loading-spinner loading-xs ml-2"
+      />
+      <Icon v-else name="tabler:brand-github" size="24" />
+    </button>
+
+    <!-- Sign out button for authenticated users -->
+    <button v-else class="btn btn-secondary" @click="authStore.signOut()">
       Sign out
     </button>
   </div>
