@@ -87,8 +87,9 @@ const updateProfile = async () => {
     })
 
     if (response.success) {
-      // Refresh the session to get updated user data
-      await authStore.init()
+      // Refresh session to get updated user data
+      await authStore.refreshSession()
+
       isEditing.value = false
 
       // Show success message

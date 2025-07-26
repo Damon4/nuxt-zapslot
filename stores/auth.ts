@@ -27,6 +27,11 @@ export const useAuthStore = defineStore('auth', () => {
     await authClient.signOut()
   }
 
+  // Refresh session data
+  async function refreshSession() {
+    await init()
+  }
+
   return {
     init,
     user,
@@ -34,5 +39,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     signIn,
     signOut,
+    refreshSession,
   }
 })
