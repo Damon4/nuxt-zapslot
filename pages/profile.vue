@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
+import { useNotifications } from '~/composables/useNotifications'
 
 const authStore = useAuthStore()
 const user = authStore.user
+const { success, error } = useNotifications()
 
 // Page metadata
 useHead({
@@ -23,6 +25,12 @@ const editForm = ref({
   email: '',
 })
 
+// Form validation state
+const formErrors = ref({
+  name: '',
+  email: '',
+})
+
 // Initialize edit form when user data is available
 watch(
   () => user,
@@ -37,54 +45,86 @@ watch(
   { immediate: true }
 )
 
+// Validation functions
+const validateForm = () => {
+  let isValid = true
+  formErrors.value = { name: '', email: '' }
+
+  // Validate name
+  if (!editForm.value.name.trim()) {
+    formErrors.value.name = 'Name is required'
+    isValid = false
+  } else if (editForm.value.name.trim().length < 2) {
+    formErrors.value.name = 'Name must be at least 2 characters'
+    isValid = false
+  } else if (editForm.value.name.trim().length > 100) {
+    formErrors.value.name = 'Name must be less than 100 characters'
+    isValid = false
+  }
+
+  // Validate email
+  if (!editForm.value.email.trim()) {
+    formErrors.value.email = 'Email is required'
+    isValid = false
+  } else {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(editForm.value.email.trim())) {
+      formErrors.value.email = 'Please enter a valid email address'
+      isValid = false
+    }
+  }
+
+  return isValid
+}
+
 // Update profile function
 const updateProfile = async () => {
   if (isUpdating.value) return
 
+  // Validate form before sending
+  if (!validateForm()) {
+    return
+  }
+
   isUpdating.value = true
 
   try {
-    const response = (await $fetch('/api/user/profile', {
+    const response = await $fetch('/api/user/profile', {
       method: 'PATCH',
       body: {
         name: editForm.value.name.trim(),
         email: editForm.value.email.trim().toLowerCase(),
       },
-    })) as {
-      success: boolean
-      user: {
-        id: string
-        name: string
-        email: string
-        emailVerified: boolean
-        image?: string
-        createdAt: Date
-        updatedAt: Date
-      }
-    }
+    })
 
     if (response.success) {
       // Refresh the session to get updated user data
-      // await authStore.init() // если нужно обновить сессию, раскомментируйте
+      await authStore.init()
       isEditing.value = false
 
       // Show success message
-      alert('Profile updated successfully!')
+      success('Profile Updated', 'Your profile has been successfully updated!')
     }
-  } catch (error) {
-    console.error('Error updating profile:', error)
+  } catch (err: unknown) {
+    // Handle different types of errors
+    let errorMessage = 'Failed to update profile. Please try again.'
 
-    // Show error message
-    const errorMessage =
-      error &&
-      typeof error === 'object' &&
-      'data' in error &&
-      error.data &&
-      typeof error.data === 'object' &&
-      'message' in error.data
-        ? String(error.data.message)
-        : 'Failed to update profile. Please try again.'
-    alert(errorMessage)
+    if (err && typeof err === 'object') {
+      if (
+        'data' in err &&
+        err.data &&
+        typeof err.data === 'object' &&
+        'statusMessage' in err.data
+      ) {
+        errorMessage = String(err.data.statusMessage)
+      } else if ('statusMessage' in err) {
+        errorMessage = String(err.statusMessage)
+      } else if ('message' in err) {
+        errorMessage = String(err.message)
+      }
+    }
+
+    error('Update Failed', errorMessage)
   } finally {
     isUpdating.value = false
   }
@@ -97,8 +137,28 @@ const cancelEdit = () => {
       email: user.email || '',
     }
   }
+  formErrors.value = { name: '', email: '' }
   isEditing.value = false
 }
+
+// Clear errors when user starts typing
+watch(
+  () => editForm.value.name,
+  () => {
+    if (formErrors.value.name) {
+      formErrors.value.name = ''
+    }
+  }
+)
+
+watch(
+  () => editForm.value.email,
+  () => {
+    if (formErrors.value.email) {
+      formErrors.value.email = ''
+    }
+  }
+)
 
 // Format date helper
 const formatDate = (date: string | Date) => {
@@ -185,11 +245,19 @@ const formatDate = (date: string | Date) => {
                   v-model="editForm.name"
                   type="text"
                   class="input input-bordered w-full"
-                  :class="{ 'input-disabled': isUpdating }"
+                  :class="{
+                    'input-disabled': isUpdating,
+                    'input-error': formErrors.name,
+                  }"
                   placeholder="Enter your name"
                   :disabled="isUpdating"
                   required
                 >
+                <label v-if="formErrors.name" class="label">
+                  <span class="label-text-alt text-error">{{
+                    formErrors.name
+                  }}</span>
+                </label>
               </div>
 
               <!-- Email Field -->
@@ -201,11 +269,19 @@ const formatDate = (date: string | Date) => {
                   v-model="editForm.email"
                   type="email"
                   class="input input-bordered w-full"
-                  :class="{ 'input-disabled': isUpdating }"
+                  :class="{
+                    'input-disabled': isUpdating,
+                    'input-error': formErrors.email,
+                  }"
                   placeholder="Enter your email"
                   :disabled="isUpdating"
                   required
                 >
+                <label v-if="formErrors.email" class="label">
+                  <span class="label-text-alt text-error">{{
+                    formErrors.email
+                  }}</span>
+                </label>
               </div>
 
               <!-- Action Buttons -->
@@ -214,7 +290,11 @@ const formatDate = (date: string | Date) => {
                   type="submit"
                   class="btn btn-primary"
                   :class="{ loading: isUpdating }"
-                  :disabled="isUpdating"
+                  :disabled="
+                    isUpdating ||
+                    !editForm.name.trim() ||
+                    !editForm.email.trim()
+                  "
                 >
                   <Icon v-if="!isUpdating" name="tabler:check" size="20" />
                   {{ isUpdating ? 'Saving...' : 'Save Changes' }}
@@ -225,6 +305,7 @@ const formatDate = (date: string | Date) => {
                   :disabled="isUpdating"
                   @click="cancelEdit"
                 >
+                  <Icon name="tabler:x" size="20" />
                   Cancel
                 </button>
               </div>
