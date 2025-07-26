@@ -17,8 +17,6 @@ export const useAuthStore = defineStore('auth', () => {
   const user = computed(() => session.value?.data?.user || null)
   const loading = computed(() => session.value?.isPending)
 
-  console.log(loading)
-
   const isAuthenticated = computed(() => !!user.value)
 
   async function signIn(callbackURL = '/dashboard') {

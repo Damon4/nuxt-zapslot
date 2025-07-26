@@ -23,11 +23,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
       // If no session or user, redirect to home
       if (!session?.user) {
-        console.log(
-          '🛡️ Server middleware: No session, redirecting',
-          to.path,
-          'to home'
-        )
+        // ...log removed...
         return navigateTo('/')
       }
     } else {
@@ -37,11 +33,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
         // If no session or user, redirect to home
         if (!session?.user) {
-          console.log(
-            '🛡️ Client middleware: No session, redirecting',
-            to.path,
-            'to home'
-          )
+          // ...log removed...
           return navigateTo('/')
         }
       } catch (error) {
