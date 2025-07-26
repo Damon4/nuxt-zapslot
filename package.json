@@ -1,8 +1,8 @@
 {
-  "name": "nuxt-app",
+  "name": "zapslot",
   "private": true,
   "type": "module",
-  "description": "",
+  "description": "Modern appointment booking platform built with Nuxt 3, Better Auth, and Prisma",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
