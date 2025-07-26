@@ -1,4 +1,7 @@
 import { auth } from '~/lib/auth'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
   // Only allow PATCH method for profile updates
@@ -48,18 +51,34 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Update user data in database using Prisma
+    const updatedUser = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        name: body.name.trim(),
+        updatedAt: new Date(),
+      },
+    })
+
+    // Update the session with new user data
+    try {
+      // Update session using better-auth
+      await auth.api.updateUser({
+        headers: request.headers,
+        body: {
+          name: updatedUser.name,
+        },
+      })
+    } catch (sessionError) {
+      console.warn(
+        'Failed to update session, but user data was updated:',
+        sessionError
+      )
+      // Continue anyway - the data was updated, session will sync on next request
+    }
+
     return {
       success: true,
-      message: 'Profile updated successfully',
-      user: {
-        id: session.user.id,
-        name: body.name.trim(),
-        email: session.user.email, // Email остается из сессии, не изменяется
-        emailVerified: session.user.emailVerified,
-        image: session.user.image,
-        createdAt: session.user.createdAt,
-        updatedAt: new Date().toISOString(),
-      },
     }
   } catch (error) {
     // Re-throw createError instances
@@ -71,5 +90,8 @@ export default defineEventHandler(async (event) => {
       statusCode: 500,
       statusMessage: 'Internal Server Error',
     })
+  } finally {
+    // Close Prisma connection
+    await prisma.$disconnect()
   }
 })
