@@ -199,15 +199,40 @@ Playwright MCP provides real browser automation capabilities and is the mandator
 ```
 ├── components/          # Vue components
 ├── pages/              # Nuxt pages
+│   ├── admin/          # Admin panel pages
+│   │   └── contractors.vue  # Contractor management interface
 ├── server/api/         # API endpoints
 │   ├── contractor/     # Contractor functionality
 │   ├── admin/          # Admin endpoints
+│   │   └── contractors/ # Admin contractor management
 │   └── user/           # User endpoints
 ├── prisma/             # Database schema and migrations
 ├── composables/        # Vue composables
 ├── stores/             # Pinia stores
 └── docs/               # Documentation
 ```
+
+### Admin Panel Architecture
+
+**Page: `/admin/contractors`**
+- **Purpose**: Complete contractor application management interface
+- **Features**:
+  - Real-time statistics dashboard (Total, Pending, Approved, Rejected)
+  - Advanced filtering by status and pagination
+  - Individual application review with detailed information
+  - One-click approve/reject functionality
+  - Status change dropdown for approved/rejected applications
+  - Responsive design with DaisyUI components
+
+**Key Components**:
+- Statistics cards with live data
+- Filter controls for status and page size
+- Application cards with user information and service details
+- Action buttons with loading states
+- Empty state handling
+- Pagination controls
+
+**Security**: Currently uses basic authentication - TODO: Add admin role verification
 
 ## Migration Guidelines
 

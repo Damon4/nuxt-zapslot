@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { z } from 'zod'
-import { requireAuth } from '~/server/utils/auth'
+import { requireAdmin } from '~/server/utils/auth'
 
 const prisma = new PrismaClient()
 
@@ -14,14 +14,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const contractorId = getRouterParam(event, 'id')
 
-    const _session = await requireAuth(event)
-    // TODO: Add admin role check
-    // if (!_session.user.isAdmin) {
-    //   throw createError({
-    //     statusCode: 403,
-    //     statusMessage: 'Admin access required'
-    //   })
-    // }
+    await requireAdmin(event)
 
     if (!contractorId) {
       throw createError({

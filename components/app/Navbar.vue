@@ -17,12 +17,18 @@ const closeDropdown = () => {
 <template>
   <div class="navbar bg-primary text-primary-content">
     <div class="navbar-start">
-      <NuxtLink
-        class="btn btn-ghost text-xl"
-        :to="authStore.isAuthenticated ? '/dashboard' : '/'"
-      >
-        <img src="/logo.svg" width="40" alt="Discover Nuxt" >
+      <NuxtLink class="btn btn-ghost text-xl" to="/">
+        <img src="/logo.svg" width="24" class="size-6" alt="Discover Nuxt" >
         ZapSlot
+      </NuxtLink>
+    </div>
+    <div class="navbar-center">
+      <NuxtLink
+        v-if="authStore.isAuthenticated"
+        to="/dashboard"
+        class="btn btn-ghost text-lg normal-case"
+      >
+        Dashboard
       </NuxtLink>
     </div>
     <div class="navbar-end">
@@ -47,6 +53,12 @@ const closeDropdown = () => {
           </li>
           <li>
             <NuxtLink to="/profile" @click="closeDropdown">Profile</NuxtLink>
+          </li>
+          <!-- Admin Panel - only for admins -->
+          <li v-if="authStore.isAdmin">
+            <NuxtLink to="/admin/contractors" @click="closeDropdown"
+              >Admin Panel</NuxtLink
+            >
           </li>
           <hr class="my-2" >
           <li>

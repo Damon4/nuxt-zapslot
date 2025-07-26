@@ -1,17 +1,10 @@
 import { PrismaClient } from '@prisma/client'
-import { requireAuth } from '~/server/utils/auth'
+import { requireAdmin } from '~/server/utils/auth'
 
 const prisma = new PrismaClient()
 
 export default defineEventHandler(async (event) => {
-  const _session = await requireAuth(event)
-  // TODO: Add admin role check
-  // if (!_session.user.isAdmin) {
-  //   throw createError({
-  //     statusCode: 403,
-  //     statusMessage: 'Admin access required'
-  //   })
-  // }
+  await requireAdmin(event)
 
   const query = getQuery(event)
   const status = query.status ? parseInt(query.status as string) : undefined
