@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
+const { formatDate, formatDateRelative } = useDateFormat()
 
 // Page metadata
 useHead({
@@ -42,7 +43,7 @@ useHead({
           <div class="stat-title">Account Status</div>
           <div class="stat-value text-primary">Active</div>
           <div class="stat-desc">
-            Since {{ new Date(authStore.user.createdAt).toLocaleDateString() }}
+            Since {{ formatDate(authStore.user.createdAt) }}
           </div>
         </div>
 
@@ -115,7 +116,7 @@ useHead({
                 <div class="badge badge-success badge-sm" />
                 <span class="flex-1">Account created</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ new Date(authStore.user.createdAt).toLocaleDateString() }}
+                  {{ formatDate(authStore.user.createdAt) }}
                 </span>
               </div>
 
@@ -123,14 +124,16 @@ useHead({
                 <div class="badge badge-info badge-sm" />
                 <span class="flex-1">Profile updated</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ new Date(authStore.user.updatedAt).toLocaleDateString() }}
+                  {{ formatDate(authStore.user.updatedAt) }}
                 </span>
               </div>
 
               <div class="bg-base-100 flex items-center gap-3 rounded-lg p-3">
                 <div class="badge badge-primary badge-sm" />
                 <span class="flex-1">Signed in with GitHub</span>
-                <span class="text-base-content/70 text-xs">Today</span>
+                <span class="text-base-content/70 text-xs">
+                  {{ formatDateRelative(authStore.user.updatedAt) }}
+                </span>
               </div>
             </div>
           </div>
