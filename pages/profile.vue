@@ -62,17 +62,7 @@ const validateForm = () => {
     isValid = false
   }
 
-  // Validate email
-  if (!editForm.value.email.trim()) {
-    formErrors.value.email = 'Email is required'
-    isValid = false
-  } else {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(editForm.value.email.trim())) {
-      formErrors.value.email = 'Please enter a valid email address'
-      isValid = false
-    }
-  }
+  // Email validation removed - email cannot be changed
 
   return isValid
 }
@@ -93,7 +83,6 @@ const updateProfile = async () => {
       method: 'PATCH',
       body: {
         name: editForm.value.name.trim(),
-        email: editForm.value.email.trim().toLowerCase(),
       },
     })
 
@@ -260,7 +249,7 @@ const formatDate = (date: string | Date) => {
                 </label>
               </div>
 
-              <!-- Email Field -->
+              <!-- Email Field (Read Only) -->
               <div class="form-control">
                 <label class="label">
                   <span class="label-text font-medium">Email</span>
@@ -268,19 +257,15 @@ const formatDate = (date: string | Date) => {
                 <input
                   v-model="editForm.email"
                   type="email"
-                  class="input input-bordered w-full"
-                  :class="{
-                    'input-disabled': isUpdating,
-                    'input-error': formErrors.email,
-                  }"
+                  class="input input-bordered input-disabled w-full"
                   placeholder="Enter your email"
-                  :disabled="isUpdating"
-                  required
+                  disabled
+                  readonly
                 >
-                <label v-if="formErrors.email" class="label">
-                  <span class="label-text-alt text-error">{{
-                    formErrors.email
-                  }}</span>
+                <label class="label">
+                  <span class="label-text-alt text-info"
+                    >Email cannot be changed</span
+                  >
                 </label>
               </div>
 
@@ -290,11 +275,7 @@ const formatDate = (date: string | Date) => {
                   type="submit"
                   class="btn btn-primary"
                   :class="{ loading: isUpdating }"
-                  :disabled="
-                    isUpdating ||
-                    !editForm.name.trim() ||
-                    !editForm.email.trim()
-                  "
+                  :disabled="isUpdating || !editForm.name.trim()"
                 >
                   <Icon v-if="!isUpdating" name="tabler:check" size="20" />
                   {{ isUpdating ? 'Saving...' : 'Save Changes' }}

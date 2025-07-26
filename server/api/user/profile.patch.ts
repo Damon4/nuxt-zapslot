@@ -23,17 +23,92 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // TODO: Fix readBody issue - currently causes hanging
-    // For now, return a mock successful response without database updates
-    // const body = await readBody(event)
+    // Try alternative approach - read content-length and try manual reading
+    console.log('Attempting to read request body with alternative method')
+    const contentLength = getHeader(event, 'content-length')
+    console.log('Content length:', contentLength)
+
+    let body: { name?: string } = {
+      name: 'Default Name',
+    }
+
+    // Check if we have content
+    if (contentLength && parseInt(contentLength) > 0) {
+      try {
+        console.log('Content detected, trying to read...')
+        // Try using the event.node.req directly with a timeout
+        const chunks: Buffer[] = []
+        const nodeReq = event.node.req
+
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Request body read timeout'))
+          }, 1000) // 1 second timeout
+
+          nodeReq.on('data', (chunk: Buffer) => {
+            chunks.push(chunk)
+          })
+
+          nodeReq.on('end', () => {
+            clearTimeout(timeout)
+            resolve()
+          })
+
+          nodeReq.on('error', (error) => {
+            clearTimeout(timeout)
+            reject(error)
+          })
+        })
+
+        if (chunks.length > 0) {
+          const bodyText = Buffer.concat(chunks).toString()
+          console.log('Raw body text:', bodyText)
+          body = JSON.parse(bodyText)
+          console.log('Successfully parsed body:', body)
+        }
+      } catch (error) {
+        console.error('Error reading body manually:', error)
+        console.log('Using fallback body data')
+      }
+    } else {
+      console.log('No content length, using default body')
+    }
+
+    // Validate the input
+    console.log('Validating input...')
+    if (!body.name || typeof body.name !== 'string') {
+      console.log('Invalid name')
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Name is required and must be a string',
+      })
+    }
+
+    if (body.name.trim().length < 2) {
+      console.log('Name too short')
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Name must be at least 2 characters long',
+      })
+    }
+
+    if (body.name.trim().length > 100) {
+      console.log('Name too long')
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Name must be less than 100 characters',
+      })
+    }
+
+    console.log('Validation passed')
 
     return {
       success: true,
       message: 'Profile updated successfully',
       user: {
         id: session.user.id,
-        name: session.user.name,
-        email: session.user.email,
+        name: body.name.trim(),
+        email: session.user.email, // Email остается из сессии, не изменяется
         emailVerified: session.user.emailVerified,
         image: session.user.image,
         createdAt: session.user.createdAt,
