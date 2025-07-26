@@ -6,6 +6,7 @@ const authStore = useAuthStore()
 
 // Reactive getters from store
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+const isLoading = computed(() => authStore.isLoading)
 </script>
 
 <template>
@@ -14,6 +15,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
     <button
       v-if="!isAuthenticated"
       class="btn btn-accent"
+      :disabled="isLoading"
       @click="
         () =>
           authClient.signIn.social({
@@ -23,7 +25,8 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
       "
     >
       Sign in with GitHub
-      <Icon name="tabler:brand-github" size="24" />
+      <span v-if="isLoading" class="loading loading-spinner loading-xs ml-2" />
+      <Icon v-else name="tabler:brand-github" size="24" />
     </button>
 
     <!-- Sign out button for authenticated users -->
