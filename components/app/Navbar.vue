@@ -14,7 +14,10 @@ const userImage = computed(() => authStore.userImage)
 <template>
   <div class="navbar bg-primary text-primary-content">
     <div class="navbar-start">
-      <NuxtLink class="btn btn-ghost text-xl">
+      <NuxtLink
+        class="btn btn-ghost text-xl"
+        :to="isAuthenticated ? '/dashboard' : '/'"
+      >
         <img src="/logo.svg" width="40" alt="Discover Nuxt" >
         ZapSlot
       </NuxtLink>
@@ -33,6 +36,9 @@ const userImage = computed(() => authStore.userImage)
         >
           <li>
             <NuxtLink to="/dashboard">Dashboard</NuxtLink>
+          </li>
+          <li>
+            <NuxtLink to="/profile">Profile</NuxtLink>
           </li>
           <hr class="my-2" >
           <li>
