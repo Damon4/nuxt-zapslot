@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
+import { useNotifications } from '~/composables/useNotifications'
 
 const authStore = useAuthStore()
-const user = authStore.user
+const { success, error } = useNotifications()
 
 // Page metadata
 useHead({
@@ -23,9 +24,15 @@ const editForm = ref({
   email: '',
 })
 
+// Form validation state
+const formErrors = ref({
+  name: '',
+  email: '',
+})
+
 // Initialize edit form when user data is available
 watch(
-  () => user,
+  () => authStore.user,
   (newUser) => {
     if (newUser) {
       editForm.value = {
@@ -37,68 +44,110 @@ watch(
   { immediate: true }
 )
 
+// Validation functions
+const validateForm = () => {
+  let isValid = true
+  formErrors.value = { name: '', email: '' }
+
+  // Validate name
+  if (!editForm.value.name.trim()) {
+    formErrors.value.name = 'Name is required'
+    isValid = false
+  } else if (editForm.value.name.trim().length < 2) {
+    formErrors.value.name = 'Name must be at least 2 characters'
+    isValid = false
+  } else if (editForm.value.name.trim().length > 100) {
+    formErrors.value.name = 'Name must be less than 100 characters'
+    isValid = false
+  }
+
+  // Email validation removed - email cannot be changed
+
+  return isValid
+}
+
 // Update profile function
 const updateProfile = async () => {
   if (isUpdating.value) return
 
+  // Validate form before sending
+  if (!validateForm()) {
+    return
+  }
+
   isUpdating.value = true
 
   try {
-    const response = (await $fetch('/api/user/profile', {
+    const response = await $fetch('/api/user/profile', {
       method: 'PATCH',
       body: {
         name: editForm.value.name.trim(),
-        email: editForm.value.email.trim().toLowerCase(),
       },
-    })) as {
-      success: boolean
-      user: {
-        id: string
-        name: string
-        email: string
-        emailVerified: boolean
-        image?: string
-        createdAt: Date
-        updatedAt: Date
-      }
-    }
+    })
 
     if (response.success) {
-      // Refresh the session to get updated user data
-      // await authStore.init() // если нужно обновить сессию, раскомментируйте
+      // Then refresh session to ensure data consistency
+      await authStore.refreshSession()
+
       isEditing.value = false
 
       // Show success message
-      alert('Profile updated successfully!')
+      success('Profile Updated', 'Your profile has been successfully updated!')
     }
-  } catch (error) {
-    console.error('Error updating profile:', error)
+  } catch (err: unknown) {
+    // Handle different types of errors
+    let errorMessage = 'Failed to update profile. Please try again.'
 
-    // Show error message
-    const errorMessage =
-      error &&
-      typeof error === 'object' &&
-      'data' in error &&
-      error.data &&
-      typeof error.data === 'object' &&
-      'message' in error.data
-        ? String(error.data.message)
-        : 'Failed to update profile. Please try again.'
-    alert(errorMessage)
+    if (err && typeof err === 'object') {
+      if (
+        'data' in err &&
+        err.data &&
+        typeof err.data === 'object' &&
+        'statusMessage' in err.data
+      ) {
+        errorMessage = String(err.data.statusMessage)
+      } else if ('statusMessage' in err) {
+        errorMessage = String(err.statusMessage)
+      } else if ('message' in err) {
+        errorMessage = String(err.message)
+      }
+    }
+
+    error('Update Failed', errorMessage)
   } finally {
     isUpdating.value = false
   }
 }
 
 const cancelEdit = () => {
-  if (user) {
+  if (authStore.user) {
     editForm.value = {
-      name: user.name || '',
-      email: user.email || '',
+      name: authStore.user.name || '',
+      email: authStore.user.email || '',
     }
   }
+  formErrors.value = { name: '', email: '' }
   isEditing.value = false
 }
+
+// Clear errors when user starts typing
+watch(
+  () => editForm.value.name,
+  () => {
+    if (formErrors.value.name) {
+      formErrors.value.name = ''
+    }
+  }
+)
+
+watch(
+  () => editForm.value.email,
+  () => {
+    if (formErrors.value.email) {
+      formErrors.value.email = ''
+    }
+  }
+)
 
 // Format date helper
 const formatDate = (date: string | Date) => {
@@ -118,7 +167,10 @@ const formatDate = (date: string | Date) => {
     </div>
 
     <!-- Profile content -->
-    <div v-else-if="user" class="container mx-auto max-w-4xl px-4 py-8">
+    <div
+      v-else-if="authStore.user"
+      class="container mx-auto max-w-4xl px-4 py-8"
+    >
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-base-content mb-2 text-3xl font-bold">Profile</h1>
@@ -140,8 +192,8 @@ const formatDate = (date: string | Date) => {
                 class="ring-primary ring-offset-base-100 h-24 w-24 rounded-full ring ring-offset-2"
               >
                 <img
-                  :src="user.image || '/logo.png'"
-                  :alt="user.name || 'User avatar'"
+                  :src="authStore.user.image || '/logo.png'"
+                  :alt="authStore.user.name || 'User avatar'"
                   class="object-cover"
                 >
               </div>
@@ -150,11 +202,13 @@ const formatDate = (date: string | Date) => {
             <!-- User Info -->
             <div class="flex-1">
               <h2 class="text-base-content mb-1 text-2xl font-bold">
-                {{ user.name || 'Anonymous User' }}
+                {{ authStore.user.name || 'Anonymous User' }}
               </h2>
-              <p class="text-base-content/70 mb-2">{{ user.email }}</p>
+              <p class="text-base-content/70 mb-2">
+                {{ authStore.user.email }}
+              </p>
               <div class="badge badge-primary">
-                Member since {{ formatDate(user.createdAt) }}
+                Member since {{ formatDate(authStore.user.createdAt) }}
               </div>
             </div>
 
@@ -185,14 +239,22 @@ const formatDate = (date: string | Date) => {
                   v-model="editForm.name"
                   type="text"
                   class="input input-bordered w-full"
-                  :class="{ 'input-disabled': isUpdating }"
+                  :class="{
+                    'input-disabled': isUpdating,
+                    'input-error': formErrors.name,
+                  }"
                   placeholder="Enter your name"
                   :disabled="isUpdating"
                   required
                 >
+                <label v-if="formErrors.name" class="label">
+                  <span class="label-text-alt text-error">{{
+                    formErrors.name
+                  }}</span>
+                </label>
               </div>
 
-              <!-- Email Field -->
+              <!-- Email Field (Read Only) -->
               <div class="form-control">
                 <label class="label">
                   <span class="label-text font-medium">Email</span>
@@ -200,12 +262,16 @@ const formatDate = (date: string | Date) => {
                 <input
                   v-model="editForm.email"
                   type="email"
-                  class="input input-bordered w-full"
-                  :class="{ 'input-disabled': isUpdating }"
+                  class="input input-bordered input-disabled w-full"
                   placeholder="Enter your email"
-                  :disabled="isUpdating"
-                  required
+                  disabled
+                  readonly
                 >
+                <label class="label">
+                  <span class="label-text-alt text-info"
+                    >Email cannot be changed</span
+                  >
+                </label>
               </div>
 
               <!-- Action Buttons -->
@@ -214,7 +280,7 @@ const formatDate = (date: string | Date) => {
                   type="submit"
                   class="btn btn-primary"
                   :class="{ loading: isUpdating }"
-                  :disabled="isUpdating"
+                  :disabled="isUpdating || !editForm.name.trim()"
                 >
                   <Icon v-if="!isUpdating" name="tabler:check" size="20" />
                   {{ isUpdating ? 'Saving...' : 'Save Changes' }}
@@ -225,6 +291,7 @@ const formatDate = (date: string | Date) => {
                   :disabled="isUpdating"
                   @click="cancelEdit"
                 >
+                  <Icon name="tabler:x" size="20" />
                   Cancel
                 </button>
               </div>
@@ -248,7 +315,7 @@ const formatDate = (date: string | Date) => {
                 class="border-base-300 flex items-center justify-between border-b py-2"
               >
                 <span class="text-base-content/70">User ID</span>
-                <span class="font-mono text-sm">{{ user.id }}</span>
+                <span class="font-mono text-sm">{{ authStore.user.id }}</span>
               </div>
 
               <div
@@ -258,10 +325,12 @@ const formatDate = (date: string | Date) => {
                 <div
                   class="badge"
                   :class="
-                    user.emailVerified ? 'badge-success' : 'badge-warning'
+                    authStore.user.emailVerified
+                      ? 'badge-success'
+                      : 'badge-warning'
                   "
                 >
-                  {{ user.emailVerified ? 'Verified' : 'Unverified' }}
+                  {{ authStore.user.emailVerified ? 'Verified' : 'Unverified' }}
                 </div>
               </div>
 
@@ -269,12 +338,12 @@ const formatDate = (date: string | Date) => {
                 class="border-base-300 flex items-center justify-between border-b py-2"
               >
                 <span class="text-base-content/70">Account Created</span>
-                <span>{{ formatDate(user.createdAt) }}</span>
+                <span>{{ formatDate(authStore.user.createdAt) }}</span>
               </div>
 
               <div class="flex items-center justify-between py-2">
                 <span class="text-base-content/70">Last Updated</span>
-                <span>{{ formatDate(user.updatedAt) }}</span>
+                <span>{{ formatDate(authStore.user.updatedAt) }}</span>
               </div>
             </div>
           </div>

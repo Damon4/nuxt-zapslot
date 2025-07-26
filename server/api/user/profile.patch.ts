@@ -13,6 +13,9 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Read request body FIRST - before better-auth processing
+    const body: { name?: string } = await readBody(event)
+
     // Get the session from the request using better-auth
     const request = toWebRequest(event)
     const session = await auth.api.getSession({
@@ -26,9 +29,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Get the request body
-    const body = await readBody(event)
-
     // Validate the input
     if (!body.name || typeof body.name !== 'string') {
       throw createError({
@@ -37,61 +37,48 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (!body.email || typeof body.email !== 'string') {
+    if (body.name.trim().length < 2) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Email is required and must be a string',
+        statusMessage: 'Name must be at least 2 characters long',
       })
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(body.email)) {
+    if (body.name.trim().length > 100) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invalid email format',
+        statusMessage: 'Name must be less than 100 characters',
       })
     }
 
-    // Check if email is already taken by another user
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        email: body.email,
-        id: { not: session.user.id },
-      },
-    })
-
-    if (existingUser) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'Email is already taken',
-      })
-    }
-
-    // Update the user profile
+    // Update user data in database using Prisma
     const updatedUser = await prisma.user.update({
-      where: {
-        id: session.user.id,
-      },
+      where: { id: session.user.id },
       data: {
         name: body.name.trim(),
-        email: body.email.toLowerCase().trim(),
         updatedAt: new Date(),
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        emailVerified: true,
-        image: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     })
+
+    // Update the session with new user data
+    try {
+      // Update session using better-auth
+      await auth.api.updateUser({
+        headers: request.headers,
+        body: {
+          name: updatedUser.name,
+        },
+      })
+    } catch (sessionError) {
+      console.warn(
+        'Failed to update session, but user data was updated:',
+        sessionError
+      )
+      // Continue anyway - the data was updated, session will sync on next request
+    }
 
     return {
       success: true,
-      user: updatedUser,
     }
   } catch (error) {
     // Re-throw createError instances
@@ -99,12 +86,12 @@ export default defineEventHandler(async (event) => {
       throw error
     }
 
-    // Log unexpected errors
-    console.error('Profile update error:', error)
-
     throw createError({
       statusCode: 500,
       statusMessage: 'Internal Server Error',
     })
+  } finally {
+    // Close Prisma connection
+    await prisma.$disconnect()
   }
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AppNavbar } from '#components'
+import { AppNavbar, AppNotificationToast } from '#components'
 
 const authStore = useAuthStore()
 await authStore.init()
@@ -11,5 +11,6 @@ await authStore.init()
     <main>
       <slot />
     </main>
+    <AppNotificationToast />
   </div>
 </template>
