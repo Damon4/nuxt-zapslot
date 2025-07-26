@@ -1,31 +1,24 @@
 <script setup lang="ts">
-import { authClient } from '~/lib/auth-client'
+import { useAuthStore } from '#imports'
 
 // Use Pinia store for auth state
 const authStore = useAuthStore()
-
-// Reactive getters from store
-const isAuthenticated = computed(() => authStore.isAuthenticated)
-const isLoading = computed(() => authStore.isLoading)
 </script>
 
 <template>
   <div>
     <!-- Sign in button for unauthenticated users -->
     <button
-      v-if="!isAuthenticated"
+      v-if="!authStore.isAuthenticated"
       class="btn btn-accent"
-      :disabled="isLoading"
-      @click="
-        () =>
-          authClient.signIn.social({
-            provider: 'github',
-            callbackURL: '/dashboard',
-          })
-      "
+      :disabled="authStore.loading"
+      @click="() => authStore.signIn()"
     >
       Sign in with GitHub
-      <span v-if="isLoading" class="loading loading-spinner loading-xs ml-2" />
+      <span
+        v-if="authStore.loading"
+        class="loading loading-spinner loading-xs ml-2"
+      />
       <Icon v-else name="tabler:brand-github" size="24" />
     </button>
 

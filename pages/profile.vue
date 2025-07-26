@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { authClient } from '~/lib/auth-client'
+import { useAuthStore } from '~/stores/auth'
 
-// Authentication and user data - now protected by server-side middleware
-const session = authClient.useSession()
-const user = computed(() => session.value?.data?.user)
+const authStore = useAuthStore()
+const user = authStore.user
 
 // Page metadata
 useHead({
@@ -14,7 +13,7 @@ useHead({
 })
 
 // Loading state
-const isLoading = computed(() => session.value?.isPending ?? false)
+const isLoading = authStore.loading
 
 // Profile editing state
 const isEditing = ref(false)
@@ -26,7 +25,7 @@ const editForm = ref({
 
 // Initialize edit form when user data is available
 watch(
-  user,
+  () => user,
   (newUser) => {
     if (newUser) {
       editForm.value = {
@@ -66,7 +65,7 @@ const updateProfile = async () => {
 
     if (response.success) {
       // Refresh the session to get updated user data
-      await authClient.getSession()
+      // await authStore.init() // если нужно обновить сессию, раскомментируйте
       isEditing.value = false
 
       // Show success message
@@ -92,10 +91,10 @@ const updateProfile = async () => {
 }
 
 const cancelEdit = () => {
-  if (user.value) {
+  if (user) {
     editForm.value = {
-      name: user.value.name || '',
-      email: user.value.email || '',
+      name: user.name || '',
+      email: user.email || '',
     }
   }
   isEditing.value = false
@@ -302,7 +301,10 @@ const formatDate = (date: string | Date) => {
 
               <div class="divider" />
 
-              <button class="btn btn-outline btn-error w-full">
+              <button
+                class="btn btn-outline btn-error w-full"
+                @click="authStore.signOut()"
+              >
                 <Icon name="tabler:logout" size="20" />
                 Sign Out
               </button>

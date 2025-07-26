@@ -1,14 +1,8 @@
 <script setup lang="ts">
-import { NuxtLink } from '#components'
 import AuthButton from '~/components/app/AuthButton.vue'
 
 // Use Pinia store for auth state
 const authStore = useAuthStore()
-
-// Reactive getters from store
-const isAuthenticated = computed(() => authStore.isAuthenticated)
-const user = computed(() => authStore.user)
-const userImage = computed(() => authStore.userImage)
 </script>
 
 <template>
@@ -16,7 +10,7 @@ const userImage = computed(() => authStore.userImage)
     <div class="navbar-start">
       <NuxtLink
         class="btn btn-ghost text-xl"
-        :to="isAuthenticated ? '/dashboard' : '/'"
+        :to="authStore.isAuthenticated ? '/dashboard' : '/'"
       >
         <img src="/logo.svg" width="40" alt="Discover Nuxt" >
         ZapSlot
@@ -24,10 +18,13 @@ const userImage = computed(() => authStore.userImage)
     </div>
     <div class="navbar-end">
       <!-- Authenticated user dropdown -->
-      <div v-if="isAuthenticated && user" class="dropdown dropdown-end">
+      <div
+        v-if="authStore.isAuthenticated && authStore?.user"
+        class="dropdown dropdown-end"
+      >
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
           <div class="w-10 rounded-full">
-            <img alt="User avatar" :src="userImage ?? undefined" >
+            <img alt="User avatar" :src="authStore.user.image ?? undefined" >
           </div>
         </div>
         <ul

@@ -1,33 +1,32 @@
 <script setup lang="ts">
-import { authClient } from '~/lib/auth-client'
-
-// Authentication check - now protected by server-side middleware
-const session = authClient.useSession()
-const user = computed(() => session.value?.data?.user)
+const authStore = useAuthStore()
 
 // Page metadata
 useHead({
   title: 'Dashboard - ZapSlot',
   meta: [{ name: 'description', content: 'Your ZapSlot dashboard' }],
 })
-
-// Loading state
-const isLoading = computed(() => session.value?.isPending ?? false)
 </script>
 
 <template>
   <div class="bg-base-100 min-h-screen">
     <!-- Loading state -->
-    <div v-if="isLoading" class="flex min-h-screen items-center justify-center">
+    <div
+      v-if="authStore.loading"
+      class="flex min-h-screen items-center justify-center"
+    >
       <span class="loading loading-spinner loading-lg" />
     </div>
 
     <!-- Dashboard content -->
-    <div v-else-if="user" class="container mx-auto max-w-6xl px-4 py-8">
+    <div
+      v-else-if="authStore.user"
+      class="container mx-auto max-w-6xl px-4 py-8"
+    >
       <!-- Header -->
       <div class="mb-8">
         <h1 class="text-base-content mb-2 text-3xl font-bold">
-          Welcome back, {{ user.name }}!
+          Welcome back, {{ authStore.user.name }}!
         </h1>
         <p class="text-base-content/70">
           Here's what's happening with your account
@@ -43,7 +42,7 @@ const isLoading = computed(() => session.value?.isPending ?? false)
           <div class="stat-title">Account Status</div>
           <div class="stat-value text-primary">Active</div>
           <div class="stat-desc">
-            Since {{ new Date(user.createdAt).toLocaleDateString() }}
+            Since {{ new Date(authStore.user.createdAt).toLocaleDateString() }}
           </div>
         </div>
 
@@ -53,9 +52,9 @@ const isLoading = computed(() => session.value?.isPending ?? false)
           </div>
           <div class="stat-title">Email Status</div>
           <div class="stat-value text-secondary">
-            {{ user.emailVerified ? 'Verified' : 'Pending' }}
+            {{ authStore.user.emailVerified ? 'Verified' : 'Pending' }}
           </div>
-          <div class="stat-desc">{{ user.email }}</div>
+          <div class="stat-desc">{{ authStore.user.email }}</div>
         </div>
 
         <div class="stat bg-base-200 rounded-lg shadow">
@@ -82,15 +81,15 @@ const isLoading = computed(() => session.value?.isPending ?? false)
               <div class="avatar">
                 <div class="h-16 w-16 rounded-full">
                   <img
-                    :src="user.image || '/logo.png'"
-                    :alt="user.name"
+                    :src="authStore.user.image || '/logo.png'"
+                    :alt="authStore.user.name"
                     class="object-cover"
                   >
                 </div>
               </div>
               <div>
-                <h3 class="text-lg font-semibold">{{ user.name }}</h3>
-                <p class="text-base-content/70">{{ user.email }}</p>
+                <h3 class="text-lg font-semibold">{{ authStore.user.name }}</h3>
+                <p class="text-base-content/70">{{ authStore.user.email }}</p>
               </div>
             </div>
 
@@ -116,7 +115,7 @@ const isLoading = computed(() => session.value?.isPending ?? false)
                 <div class="badge badge-success badge-sm" />
                 <span class="flex-1">Account created</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ new Date(user.createdAt).toLocaleDateString() }}
+                  {{ new Date(authStore.user.createdAt).toLocaleDateString() }}
                 </span>
               </div>
 
@@ -124,7 +123,7 @@ const isLoading = computed(() => session.value?.isPending ?? false)
                 <div class="badge badge-info badge-sm" />
                 <span class="flex-1">Profile updated</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ new Date(user.updatedAt).toLocaleDateString() }}
+                  {{ new Date(authStore.user.updatedAt).toLocaleDateString() }}
                 </span>
               </div>
 

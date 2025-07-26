@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import { AppNavbar } from '#components'
 
-// Initialize auth state with SSR-safe approach
 const authStore = useAuthStore()
-
-// Initialize auth state on mount
-onMounted(async () => {
-  await authStore.fetchSession()
-})
+await authStore.init()
 </script>
 
 <template>
