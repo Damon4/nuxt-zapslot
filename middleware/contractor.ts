@@ -1,5 +1,15 @@
 export default defineNuxtRouteMiddleware(async () => {
   try {
+    // For client-side, first check auth state from store
+    if (import.meta.client) {
+      const authStore = useAuthStore()
+
+      // If not authenticated, redirect immediately
+      if (!authStore.isAuthenticated) {
+        return navigateTo('/profile')
+      }
+    }
+
     // Check if user has contractor profile
     const response = await $fetch('/api/contractor/profile')
 
