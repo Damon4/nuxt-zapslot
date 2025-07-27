@@ -13,10 +13,10 @@ export default defineEventHandler(async (event) => {
   try {
     // ✅ CORRECT: Read request body first
     const body = await readBody(event)
-    
+
     // ✅ CORRECT: Then check authorization
     const session = await requireAuth(event)
-    
+
     // Rest of the logic...
   } catch (error) {
     // Error handling
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
   try {
     // ❌ INCORRECT: Authorization first
     const session = await requireAuth(event)
-    
+
     // ❌ INCORRECT: Then reading request body
     const body = await readBody(event) // May not work!
   } catch (error) {
@@ -45,6 +45,7 @@ export default defineEventHandler(async (event) => {
 `requireAuth()` may modify the state of the `event` object, making subsequent `readBody()` calls impossible or incorrect. Always read the request body **before** any operations that might modify the event object.
 
 #### Applies to:
+
 - POST endpoints with JSON body
 - PUT/PATCH endpoints with update data
 - Any endpoints using `readBody(event)`
@@ -194,6 +195,82 @@ Playwright MCP provides real browser automation capabilities and is the mandator
 
 **Usage**: When testing functionality, always use Playwright MCP tools to ensure comprehensive and reliable test coverage.
 
+### GitHub Issues Management
+
+#### Creating Issues with GitHub CLI
+
+Use GitHub CLI for creating issues when documenting completed work or planning features.
+
+**Important:** Use only these labels (as configured in this repository):
+
+- enhancement
+- bug
+- documentation
+- duplicate
+- good first issue
+- help wanted
+- invalid
+- question
+- wontfix
+
+If you need a new label, add it in the repository settings first.
+
+**Example: Create issue for completed work**
+
+```bash
+gh issue create --title "✅ Feature Name - Brief Description" \
+  --body "## Completed\n- [x] Item 1\n- [x] Item 2\n\n**Next:** Next steps" \
+  --label "enhancement"
+```
+
+**Example: Create issue for new feature planning**
+
+```bash
+gh issue create --title "🚀 Feature Name - Implementation Plan" \
+  --body "## Requirements\n- [ ] Task 1\n- [ ] Task 2\n\n## Acceptance Criteria\n- Criteria 1\n- Criteria 2" \
+  --label "enhancement"
+```
+
+#### Creating Pull Requests with GitHub CLI
+
+**Example: Create pull request for documentation update**
+
+```bash
+gh pr create --title "📝 Documentation Update" \
+  --body "## Summary\n- Updated the GitHub Issues management section\n- Added requirements for allowed labels and formatting\n\n**Next steps:**\n- Review and merge this PR\n- Share the updated guideline with the team" \
+  --base main --head docs/github-issues-guideline
+```
+
+**Example: Create pull request for completed feature**
+
+```bash
+gh pr create --title "✅ Services System - Stage 1 Implementation" \
+  --body "## Completed\n- [x] Added Service and Booking models\n- [x] Created API endpoints\n- [x] Added composables\n\n**Closes:** #18" \
+  --base main --head feature/services-stage-1
+```
+
+#### Issue Formatting Standards
+
+**Title Format:**
+
+- ✅ `Feature Name - Brief Description` (for completed work)
+- 🚀 `Feature Name - Implementation Plan` (for new features)
+- 🐛 `Bug Name - Description` (for bugs)
+- 📝 `Documentation Update` (for docs)
+
+**Body Structure:**
+
+- Use checkboxes `- [x]` for completed items
+- Use checkboxes `- [ ]` for pending items
+- Include **Next:** section for progression
+- Keep descriptions concise but informative
+
+#### Common Labels
+
+- `enhancement` - new features
+- `bug` - bug reports
+- `documentation` - docs updates
+
 ## Project Structure
 
 ```
@@ -215,6 +292,7 @@ Playwright MCP provides real browser automation capabilities and is the mandator
 ### Admin Panel Architecture
 
 **Page: `/admin/contractors`**
+
 - **Purpose**: Complete contractor application management interface
 - **Features**:
   - Real-time statistics dashboard (Total, Pending, Approved, Rejected)
@@ -225,6 +303,7 @@ Playwright MCP provides real browser automation capabilities and is the mandator
   - Responsive design with DaisyUI components
 
 **Key Components**:
+
 - Statistics cards with live data
 - Filter controls for status and page size
 - Application cards with user information and service details
