@@ -382,6 +382,9 @@ const formatDate = (date: string | Date) => {
         </div>
       </div>
 
+      <!-- Contractor Profile Section -->
+      <ContractorProfileBlock />
+
       <!-- Danger Zone -->
       <div class="card bg-error/10 border-error/20 mt-6 border shadow-xl">
         <div class="card-body">

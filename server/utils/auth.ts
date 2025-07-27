@@ -53,3 +53,24 @@ export async function getAuth(event: H3Event) {
     return null
   }
 }
+
+/**
+ * Server-side utility to require admin authentication
+ * @param event H3Event from the request
+ * @returns Admin user session or throws authorization error
+ */
+export async function requireAdmin(event: H3Event) {
+  const session = await requireAuth(event)
+
+  // Type assertion since Better Auth types don't include isAdmin yet
+  const user = session.user as typeof session.user & { isAdmin?: boolean }
+
+  if (!user.isAdmin) {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Admin access required',
+    })
+  }
+
+  return session
+}

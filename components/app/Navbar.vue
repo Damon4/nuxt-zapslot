@@ -3,17 +3,32 @@ import AuthButton from '~/components/app/AuthButton.vue'
 
 // Use Pinia store for auth state
 const authStore = useAuthStore()
+
+// Handle dropdown close on navigation
+const closeDropdown = () => {
+  // Remove focus from dropdown to close it
+  const activeElement = document.activeElement as HTMLElement
+  if (activeElement && activeElement.blur) {
+    activeElement.blur()
+  }
+}
 </script>
 
 <template>
   <div class="navbar bg-primary text-primary-content">
     <div class="navbar-start">
-      <NuxtLink
-        class="btn btn-ghost text-xl"
-        :to="authStore.isAuthenticated ? '/dashboard' : '/'"
-      >
-        <img src="/logo.svg" width="40" alt="Discover Nuxt" >
+      <NuxtLink class="btn btn-ghost text-xl" to="/">
+        <img src="/logo.svg" width="24" class="size-6" alt="Discover Nuxt" >
         ZapSlot
+      </NuxtLink>
+    </div>
+    <div class="navbar-center">
+      <NuxtLink
+        v-if="authStore.isAuthenticated"
+        to="/dashboard"
+        class="btn btn-ghost text-lg normal-case"
+      >
+        Dashboard
       </NuxtLink>
     </div>
     <div class="navbar-end">
@@ -32,10 +47,18 @@ const authStore = useAuthStore()
           class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
         >
           <li>
-            <NuxtLink to="/dashboard">Dashboard</NuxtLink>
+            <NuxtLink to="/dashboard" @click="closeDropdown"
+              >Dashboard</NuxtLink
+            >
           </li>
           <li>
-            <NuxtLink to="/profile">Profile</NuxtLink>
+            <NuxtLink to="/profile" @click="closeDropdown">Profile</NuxtLink>
+          </li>
+          <!-- Admin Panel - only for admins -->
+          <li v-if="authStore.isAdmin">
+            <NuxtLink to="/admin/contractors" @click="closeDropdown"
+              >Admin Panel</NuxtLink
+            >
           </li>
           <hr class="my-2" >
           <li>

@@ -18,6 +18,10 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = computed(() => session.value?.isPending)
 
   const isAuthenticated = computed(() => !!user.value)
+  const isAdmin = computed(() => {
+    const currentUser = user.value as typeof user.value & { isAdmin?: boolean }
+    return !!currentUser?.isAdmin
+  })
 
   async function signIn(callbackURL = '/dashboard') {
     await authClient.signIn.social({ provider: 'github', callbackURL })
@@ -37,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     loading,
     isAuthenticated,
+    isAdmin,
     signIn,
     signOut,
     refreshSession,

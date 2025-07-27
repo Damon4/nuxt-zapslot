@@ -19,10 +19,12 @@ model User {
   email         String
   emailVerified Boolean
   image         String?
+  isAdmin       Boolean   @default(false)
   createdAt     DateTime
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  contractor    Contractor?
 
   @@unique([email])
   @@map("user")
@@ -71,4 +73,20 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model Contractor {
+  id          Int      @id @default(autoincrement())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      Int      @default(0) // 0: pending, 1: approved, -1: rejected
+  description String
+  categories  String
+  experience  String?
+  portfolio   String?
+  price       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("contractor")
 }

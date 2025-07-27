@@ -215,6 +215,10 @@ zapslot/
 
 ## 📚 Resources
 
+### 📖 Development Documentation
+- [Development Guidelines](docs/development-guidelines.md) - Essential patterns and best practices for this project
+
+### 🌐 External Documentation
 - [Nuxt 3 Documentation](https://nuxt.com/docs/getting-started/introduction)
 - [Better Auth Documentation](https://www.better-auth.com/docs/introduction)
 - [Prisma Documentation](https://www.prisma.io/docs/)
