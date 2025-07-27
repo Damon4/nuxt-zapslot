@@ -233,20 +233,49 @@ gh issue create --title "🚀 Feature Name - Implementation Plan" \
 
 #### Creating Pull Requests with GitHub CLI
 
-**Example: Create pull request for documentation update**
+**Recommended: Use --body-file for detailed descriptions**
+
+For complex pull requests with detailed descriptions, create a separate markdown file:
+
+```bash
+# Create PR body file
+cat > pr-body.md << 'EOF'
+## Completed
+- [x] Service Management Interface (/contractor/services)
+- [x] Booking Management Interface (/contractor/bookings)  
+- [x] Service Creation/Edit Form with validation
+- [x] Authentication & Authorization System
+
+## Technical Implementation
+- [x] Backend APIs: GET/POST/PUT/DELETE/PATCH for services
+- [x] Frontend Components: ServiceForm, service cards, booking filters
+- [x] Authentication Flow: contractor middleware and auth store
+
+## Testing Results
+- [x] Manual testing across all features
+- [x] Playwright MCP automation testing
+
+**Reference:** docs/services-plan.md Stage 2
+**Next:** Ready for Stage 3 - Public Service Catalog
+EOF
+
+# Create PR using body file
+gh pr create --title "✅ Services System - Stage 2: Contractor Interface" \
+  --body-file pr-body.md \
+  --base main --head feature/services-stage-2
+
+# Clean up
+rm pr-body.md
+```
+
+**Alternative: Simple PR with inline body**
+
+For simple pull requests, you can still use inline body:
 
 ```bash
 gh pr create --title "📝 Documentation Update" \
-  --body "## Summary\n- Updated the GitHub Issues management section\n- Added requirements for allowed labels and formatting\n\n**Next steps:**\n- Review and merge this PR\n- Share the updated guideline with the team" \
-  --base main --head docs/github-issues-guideline
-```
-
-**Example: Create pull request for completed feature**
-
-```bash
-gh pr create --title "✅ Services System - Stage 1 Implementation" \
-  --body "## Completed\n- [x] Added Service and Booking models\n- [x] Created API endpoints\n- [x] Added composables\n\n**Closes:** #18" \
-  --base main --head feature/services-stage-1
+  --body "## Summary\n- Updated GitHub CLI guidelines\n- Added body-file recommendation\n\n**Next:** Review and merge" \
+  --base main --head docs/update
 ```
 
 #### Issue Formatting Standards
