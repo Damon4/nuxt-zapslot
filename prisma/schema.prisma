@@ -25,6 +25,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   contractor    Contractor?
+  bookings      Booking[]
 
   @@unique([email])
   @@map("user")
@@ -88,5 +89,48 @@ model Contractor {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  services    Service[]
+
   @@map("contractor")
+}
+
+model Service {
+  id            Int      @id @default(autoincrement())
+  contractorId  Int
+  contractor    Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+
+  title         String   // service title
+  description   String   // detailed description
+  category      String   // category (from contractor-plan.md)
+  price         Decimal? // price (can be null for "negotiable")
+  priceType     String   @default("FIXED") // FIXED, HOURLY, NEGOTIABLE
+  duration      Int?     // duration in minutes (optional)
+  availability  String   @default("FLEXIBLE") // WEEKDAYS, WEEKENDS, MORNINGS, EVENINGS, FLEXIBLE
+
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  bookings      Booking[]
+
+  @@map("service")
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  serviceId   Int
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
+  scheduledAt DateTime // when the service is scheduled
+  duration    Int?     // actual duration (may differ from Service.duration)
+  totalPrice  Decimal? // final price (can be negotiable)
+  notes       String?  // additional notes from the client
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("booking")
 }

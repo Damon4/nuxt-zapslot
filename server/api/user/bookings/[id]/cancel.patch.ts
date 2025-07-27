@@ -1,0 +1,63 @@
+import { PrismaClient } from '@prisma/client'
+import { requireAuth } from '~/server/utils/auth'
+
+const prisma = new PrismaClient()
+
+export default defineEventHandler(async (event) => {
+  const session = await requireAuth(event)
+  const bookingId = getRouterParam(event, 'id')
+
+  if (!bookingId || isNaN(Number(bookingId))) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid booking ID',
+    })
+  }
+
+  // Verify booking ownership
+  const booking = await prisma.booking.findFirst({
+    where: {
+      id: Number(bookingId),
+      clientId: session.user.id,
+    },
+  })
+
+  if (!booking) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: 'Booking not found',
+    })
+  }
+
+  if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Cannot cancel this booking',
+    })
+  }
+
+  const updatedBooking = await prisma.booking.update({
+    where: { id: Number(bookingId) },
+    data: {
+      status: 'CANCELLED',
+    },
+    include: {
+      service: {
+        include: {
+          contractor: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  return { booking: updatedBooking }
+})
