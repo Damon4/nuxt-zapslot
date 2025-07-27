@@ -23,6 +23,13 @@ export const useAuthStore = defineStore('auth', () => {
     return !!currentUser?.isAdmin
   })
 
+  // Check if user is an approved contractor
+  const isContractor = computed(() => {
+    // This would need to be populated from contractor data
+    // For now, returning false as placeholder
+    return false
+  })
+
   async function signIn(callbackURL = '/dashboard') {
     await authClient.signIn.social({ provider: 'github', callbackURL })
   }
@@ -42,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     isAuthenticated,
     isAdmin,
+    isContractor,
     signIn,
     signOut,
     refreshSession,

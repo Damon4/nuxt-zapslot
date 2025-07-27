@@ -1,0 +1,27 @@
+export default defineNuxtRouteMiddleware(async () => {
+  try {
+    // Check if user has contractor profile
+    const response = await $fetch('/api/contractor/profile')
+
+    if (!response.success || !response.data) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Contractor profile required',
+      })
+    }
+
+    // Check if contractor is approved
+    if (response.data.status !== 1) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Contractor approval required',
+      })
+    }
+  } catch (error) {
+    // Redirect to profile page if not a contractor or not approved
+    if (import.meta.client) {
+      await navigateTo('/profile')
+    }
+    throw error
+  }
+})

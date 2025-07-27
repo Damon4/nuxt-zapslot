@@ -54,6 +54,17 @@ const closeDropdown = () => {
           <li>
             <NuxtLink to="/profile" @click="closeDropdown">Profile</NuxtLink>
           </li>
+          <!-- Contractor Panel - only for approved contractors -->
+          <li v-if="authStore.isContractor">
+            <NuxtLink to="/contractor/services" @click="closeDropdown"
+              >My Services</NuxtLink
+            >
+          </li>
+          <li v-if="authStore.isContractor">
+            <NuxtLink to="/contractor/bookings" @click="closeDropdown"
+              >My Bookings</NuxtLink
+            >
+          </li>
           <!-- Admin Panel - only for admins -->
           <li v-if="authStore.isAdmin">
             <NuxtLink to="/admin/contractors" @click="closeDropdown"
