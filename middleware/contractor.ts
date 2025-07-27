@@ -18,15 +18,13 @@ export default defineNuxtRouteMiddleware(async () => {
       })
     }
   } catch (error: unknown) {
-    console.error('Contractor middleware error:', error)
-    
-    // Redirect to profile page if not a contractor or not approved
+    // For client-side, redirect to profile page
     if (import.meta.client) {
       await navigateTo('/profile')
       return
     }
-    
-    // For server-side, still throw the error
+
+    // For server-side, throw the error
     throw error
   }
 })
