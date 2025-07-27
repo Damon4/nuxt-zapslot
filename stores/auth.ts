@@ -25,8 +25,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Check if user is an approved contractor
   const isContractor = computed(() => {
-    // This would need to be populated from contractor data
-    // For now, returning false as placeholder
+    // This would be true if user has an approved contractor profile
+    // We'll implement this properly when we add contractor profile data to session
+    // For now, returning false as placeholder - will be updated to check contractor status
     return false
   })
 
