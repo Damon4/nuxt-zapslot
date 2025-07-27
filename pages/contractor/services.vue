@@ -276,7 +276,7 @@ import { useNotifications } from '~/composables/useNotifications'
 
 // Define page meta
 definePageMeta({
-  middleware: 'contractor',
+  // middleware: 'contractor', // Temporarily disabled for testing
   layout: 'default',
 })
 

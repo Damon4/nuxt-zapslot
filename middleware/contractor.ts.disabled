@@ -17,11 +17,16 @@ export default defineNuxtRouteMiddleware(async () => {
         statusMessage: 'Contractor approval required',
       })
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Contractor middleware error:', error)
+    
     // Redirect to profile page if not a contractor or not approved
     if (import.meta.client) {
       await navigateTo('/profile')
+      return
     }
+    
+    // For server-side, still throw the error
     throw error
   }
 })

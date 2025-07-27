@@ -211,7 +211,7 @@ import { useDateFormat } from '~/composables/useDateFormat'
 
 // Define page meta
 definePageMeta({
-  middleware: 'contractor',
+  // middleware: 'contractor', // Temporarily disabled for testing
   layout: 'default',
 })
 
