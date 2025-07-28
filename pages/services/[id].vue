@@ -265,6 +265,9 @@ import { ref, onMounted, computed } from 'vue'
 const route = useRoute()
 const serviceId = route.params.id
 
+// Notifications
+const { success, error: showError } = useNotifications()
+
 definePageMeta({
   title: 'Service Details',
   description: 'View service details and book your appointment',
@@ -379,9 +382,9 @@ const handleBooking = async () => {
     })
 
     // Show success notification
-    // TODO: Add notification system
-    alert(
-      'Booking request sent successfully! The contractor will contact you soon.'
+    success(
+      'Booking Successful!',
+      'Your booking request has been sent to the contractor. They will contact you soon to confirm the details.'
     )
 
     // Reset form
@@ -391,7 +394,8 @@ const handleBooking = async () => {
   } catch (err: unknown) {
     // Show error notification
     const errorData = err as { data?: { message?: string } }
-    alert(
+    showError(
+      'Booking Failed',
       errorData.data?.message || 'Failed to create booking. Please try again.'
     )
   } finally {

@@ -146,6 +146,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 
+// Notifications
+const { error: showError } = useNotifications()
+
 definePageMeta({
   title: 'Browse Services',
   description: 'Find and book professional services from verified contractors',
@@ -272,7 +275,10 @@ const fetchServices = async (page = 1) => {
     pagination.value = response.pagination
   } catch (error) {
     console.error('Error fetching services:', error)
-    // TODO: Show error notification
+    showError(
+      'Search Failed',
+      'Unable to load services. Please check your connection and try again.'
+    )
   } finally {
     loading.value = false
   }
