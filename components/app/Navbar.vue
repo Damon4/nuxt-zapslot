@@ -23,13 +23,20 @@ const closeDropdown = () => {
       </NuxtLink>
     </div>
     <div class="navbar-center">
-      <NuxtLink
-        v-if="authStore.isAuthenticated"
-        to="/dashboard"
-        class="btn btn-ghost text-lg normal-case"
-      >
-        Dashboard
-      </NuxtLink>
+      <div class="hidden lg:flex">
+        <ul class="menu menu-horizontal px-1 text-lg">
+          <li>
+            <NuxtLink to="/services" class="btn btn-ghost normal-case">
+              Browse Services
+            </NuxtLink>
+          </li>
+          <li v-if="authStore.isAuthenticated">
+            <NuxtLink to="/dashboard" class="btn btn-ghost normal-case">
+              Dashboard
+            </NuxtLink>
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="navbar-end">
       <!-- Authenticated user dropdown -->
@@ -46,6 +53,11 @@ const closeDropdown = () => {
           tabindex="0"
           class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
         >
+          <li>
+            <NuxtLink to="/services" @click="closeDropdown"
+              >Browse Services</NuxtLink
+            >
+          </li>
           <li>
             <NuxtLink to="/dashboard" @click="closeDropdown"
               >Dashboard</NuxtLink
