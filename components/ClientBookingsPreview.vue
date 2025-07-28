@@ -51,7 +51,7 @@ const handleContactContractor = (_bookingId: number) => {
 
 const handleViewDetails = (bookingId: number) => {
   // Navigate to booking details
-  navigateTo(`/my-orders/${bookingId}`)
+  navigateTo(`/my-bookings/${bookingId}`)
 }
 
 // Lifecycle
@@ -136,9 +136,9 @@ onMounted(() => {
 
       <!-- Show More Link -->
       <div v-if="bookings.length > 3" class="mt-6 text-center">
-        <NuxtLink to="/my-orders" class="btn btn-outline">
+        <NuxtLink to="/my-bookings" class="btn btn-outline">
           <Icon name="tabler:arrow-right" class="h-4 w-4" />
-          View All {{ bookings.length }} Orders
+          View All {{ bookings.length }} Bookings
         </NuxtLink>
       </div>
     </div>

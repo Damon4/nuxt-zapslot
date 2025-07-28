@@ -9,12 +9,12 @@ const { success, error: showError } = useNotifications()
 
 // Page metadata
 definePageMeta({
-  title: 'My Orders',
+  title: 'My Bookings',
   description: 'View and manage your service bookings',
 })
 
 useHead({
-  title: 'My Orders - ZapSlot',
+  title: 'My Bookings - ZapSlot',
   meta: [
     { name: 'description', content: 'View and manage your service bookings' },
   ],
@@ -98,7 +98,7 @@ const handleContactContractor = (_bookingId: number) => {
 
 const handleViewDetails = (bookingId: number) => {
   // Navigate to booking details
-  navigateTo(`/my-orders/${bookingId}`)
+  navigateTo(`/my-bookings/${bookingId}`)
 }
 
 const setSortBy = (field: 'date' | 'status' | 'service') => {
@@ -124,7 +124,9 @@ onMounted(() => {
       <div class="mb-8">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h1 class="text-base-content mb-2 text-3xl font-bold">My Orders</h1>
+            <h1 class="text-base-content mb-2 text-3xl font-bold">
+              My Bookings
+            </h1>
             <p class="text-base-content/70">
               View and manage all your service bookings
             </p>
@@ -139,7 +141,7 @@ onMounted(() => {
         <div class="breadcrumbs text-sm">
           <ul>
             <li><NuxtLink to="/dashboard">Dashboard</NuxtLink></li>
-            <li>My Orders</li>
+            <li>My Bookings</li>
           </ul>
         </div>
       </div>
@@ -163,7 +165,7 @@ onMounted(() => {
         <!-- Stats Cards -->
         <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
           <div class="stat bg-base-200 rounded-lg p-4">
-            <div class="stat-title text-xs">Total Orders</div>
+            <div class="stat-title text-xs">Total Bookings</div>
             <div class="stat-value text-lg">{{ bookingStats.total }}</div>
           </div>
           <div class="stat bg-base-200 rounded-lg p-4">
@@ -205,7 +207,7 @@ onMounted(() => {
                   v-model="statusFilter"
                   class="select select-sm select-bordered"
                 >
-                  <option value="all">All Orders</option>
+                  <option value="all">All Bookings</option>
                   <option value="PENDING">Pending</option>
                   <option value="CONFIRMED">Confirmed</option>
                   <option value="COMPLETED">Completed</option>

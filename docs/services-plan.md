@@ -102,9 +102,9 @@ model Booking {
   - Duration (optional)
   - Availability (dropdown)
 
-- **"My Orders" page** (`/contractor/bookings`)
+- **"My Bookings" page** (`/contractor/bookings`)
   - Incoming bookings with status filters
-  - Ability to confirm/reject order
+  - Ability to confirm/reject bookings
   - Calendar view
 
 ### For Clients
@@ -127,9 +127,9 @@ model Booking {
   - Price confirmation
   - Contact info
 
-- **"My Orders" page** (`/profile/bookings`)
+- **"My Bookings" page** (`/my-bookings`)
   - Booking history
-  - Order statuses
+  - Booking statuses
   - Cancel option
 
 ### Common Components
@@ -236,7 +236,7 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
 
 1. Service management page
 2. Service create/edit form
-3. Orders management page
+3. Bookings management page
 4. Integration with existing contractor profile
 
 ### Stage 3: Public Service Catalog
@@ -246,10 +246,10 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
 3. Booking form
 4. Integration with contractor profiles
 
-### Stage 4: Client Order Management
+### Stage 4: Client Booking Management
 
-1. "My Orders" page for clients
-2. Order status notifications
+1. "My Bookings" page for clients
+2. Booking status notifications
 3. Booking cancellation option
 
 ### Stage 5: Improvements and Optimization
@@ -320,5 +320,5 @@ const bookingSchema = z.object({
 
 - Service creation by contractor
 - Service search and booking by client
-- Order status management
+- Booking status management
 - Different user roles

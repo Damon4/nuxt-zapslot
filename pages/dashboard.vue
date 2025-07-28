@@ -68,13 +68,13 @@ useHead({
         </div>
       </div>
 
-      <!-- My Orders Section -->
+      <!-- My Bookings Section -->
       <div class="mb-8">
         <div class="mb-6 flex items-center justify-between">
-          <h2 class="text-base-content text-2xl font-bold">My Orders</h2>
-          <NuxtLink to="/my-orders" class="btn btn-primary btn-sm">
+          <h2 class="text-base-content text-2xl font-bold">My Bookings</h2>
+          <NuxtLink to="/my-bookings" class="btn btn-primary btn-sm">
             <Icon name="tabler:list" class="h-4 w-4" />
-            View All Orders
+            View All Bookings
           </NuxtLink>
         </div>
 

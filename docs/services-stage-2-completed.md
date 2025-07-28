@@ -16,7 +16,7 @@ This stage focused on implementing the contractor-facing interface for service a
 - **Location**: `/contractor/services`
 - **Features**:
   - Complete CRUD operations for services
-  - Service statistics dashboard (Total Services, Bookings, Pending Orders)
+  - Service statistics dashboard (Total Services, Bookings, Pending Bookings)
   - Active/Inactive service toggles
   - Professional service creation form with validation
   - Edit and delete service capabilities
