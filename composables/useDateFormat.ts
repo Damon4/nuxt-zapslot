@@ -31,6 +31,31 @@ export const useDateFormat = () => {
   }
 
   /**
+   * Format time consistently on both server and client
+   */
+  const formatTime = (date: string | Date): string => {
+    if (!date) return 'N/A'
+
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date
+
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        return 'Invalid Time'
+      }
+
+      // Use consistent 24-hour format
+      const hours = String(dateObj.getHours()).padStart(2, '0')
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0')
+
+      return `${hours}:${minutes}`
+    } catch (error) {
+      console.error('Error formatting time:', error)
+      return 'Invalid Time'
+    }
+  }
+
+  /**
    * Format date for display with relative time info
    */
   const formatDateRelative = (date: string | Date): string => {
@@ -64,6 +89,7 @@ export const useDateFormat = () => {
 
   return {
     formatDate,
+    formatTime,
     formatDateRelative,
   }
 }

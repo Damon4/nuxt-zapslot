@@ -195,7 +195,92 @@ Playwright MCP provides real browser automation capabilities and is the mandator
 
 **Usage**: When testing functionality, always use Playwright MCP tools to ensure comprehensive and reliable test coverage.
 
+### Development Workflow
+
+#### Feature Development Process
+
+Based on project experience, follow this proven workflow:
+
+1. **Assessment Phase**
+   - Review existing plan (e.g., `docs/services-plan.md`)
+   - Understand current implementation status
+   - Identify what needs testing vs building
+
+2. **Issue Creation and Branch Setup**
+   ```bash
+   # Create GitHub issue for the feature/stage
+   gh issue create --title "🚀 Services System - Stage 2: Contractor Interface" \
+     --body "## Requirements\n- [ ] Service Management Interface\n- [ ] Booking Management Interface\n- [ ] Authentication System\n\n**Reference:** docs/services-plan.md Stage 2" \
+     --label "enhancement"
+   
+   # Create feature branch from main for the issue
+   git checkout main
+   git pull origin main
+   git checkout -b feature/services-stage-2-contractor-interface-20
+   ```
+
+3. **Testing-First Approach**
+   ```bash
+   # Start with comprehensive testing of existing features
+   # Example: "let's test the contractor interface"
+   # Use Playwright MCP for real browser testing
+   ```
+
+4. **Issue Discovery and Documentation**
+   - Document bugs found during testing
+   - Create GitHub issues for each problem
+   - Prioritize based on user impact
+
+5. **Iterative Development**
+   - Fix high-priority issues first
+   - Test each fix immediately
+   - Commit incremental improvements
+   - Example: "fix authentication middleware issues"
+
+6. **Feature Completion**
+   - Create comprehensive documentation
+   - Final testing round
+   - Prepare PR with `--body-file` for detailed description
+
+**Key Practices:**
+- Create GitHub issue first for feature planning
+- Always start from main branch with latest changes
+- Use descriptive branch names with issue context
+- Always test before building new features
+- Use "test first" → "fix issues" cycle
+- Real browser testing with Playwright MCP
+- Incremental commits with clear messages
+- Document completion with detailed reports
+
 ### GitHub Issues Management
+
+#### Starting Work on Features
+
+**Recommended workflow based on project experience:**
+
+1. **Start with testing existing functionality**
+   ```bash
+   # Test current implementation before making changes
+   # Use Playwright MCP for comprehensive testing
+   ```
+
+2. **Identify and document issues during testing**
+   ```bash
+   # Create issues for bugs found during testing
+   gh issue create --title "🐛 Page Header Corruption in Contractor Pages" \
+     --body "## Problem\n- Mixed template/script content in page headers\n- Causes rendering issues\n\n**Found during:** Contractor interface testing\n**Priority:** High" \
+     --label "bug"
+   ```
+
+3. **Create feature branch from testing insights**
+   ```bash
+   git checkout -b feature/services-stage-2-contractor-interface-20
+   ```
+
+4. **Work iteratively with testing**
+   - Fix issues as they're discovered
+   - Test each fix with Playwright MCP
+   - Commit incremental improvements
 
 #### Creating Issues with GitHub CLI
 
@@ -233,20 +318,49 @@ gh issue create --title "🚀 Feature Name - Implementation Plan" \
 
 #### Creating Pull Requests with GitHub CLI
 
-**Example: Create pull request for documentation update**
+**Recommended: Use --body-file for detailed descriptions**
+
+For complex pull requests with detailed descriptions, create a separate markdown file:
+
+```bash
+# Create PR body file
+cat > pr-body.md << 'EOF'
+## Completed
+- [x] Service Management Interface (/contractor/services)
+- [x] Booking Management Interface (/contractor/bookings)  
+- [x] Service Creation/Edit Form with validation
+- [x] Authentication & Authorization System
+
+## Technical Implementation
+- [x] Backend APIs: GET/POST/PUT/DELETE/PATCH for services
+- [x] Frontend Components: ServiceForm, service cards, booking filters
+- [x] Authentication Flow: contractor middleware and auth store
+
+## Testing Results
+- [x] Manual testing across all features
+- [x] Playwright MCP automation testing
+
+**Reference:** docs/services-plan.md Stage 2
+**Next:** Ready for Stage 3 - Public Service Catalog
+EOF
+
+# Create PR using body file
+gh pr create --title "✅ Services System - Stage 2: Contractor Interface" \
+  --body-file pr-body.md \
+  --base main --head feature/services-stage-2
+
+# Clean up
+rm pr-body.md
+```
+
+**Alternative: Simple PR with inline body**
+
+For simple pull requests, you can still use inline body:
 
 ```bash
 gh pr create --title "📝 Documentation Update" \
-  --body "## Summary\n- Updated the GitHub Issues management section\n- Added requirements for allowed labels and formatting\n\n**Next steps:**\n- Review and merge this PR\n- Share the updated guideline with the team" \
-  --base main --head docs/github-issues-guideline
-```
-
-**Example: Create pull request for completed feature**
-
-```bash
-gh pr create --title "✅ Services System - Stage 1 Implementation" \
-  --body "## Completed\n- [x] Added Service and Booking models\n- [x] Created API endpoints\n- [x] Added composables\n\n**Closes:** #18" \
-  --base main --head feature/services-stage-1
+  --body "## Summary\n- Updated GitHub CLI guidelines\n- Added body-file recommendation\n\n**Next:** Review and merge" \
+  --base main --head docs/update
 ```
 
 #### Issue Formatting Standards
