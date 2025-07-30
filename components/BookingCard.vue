@@ -58,7 +58,7 @@ const statusConfig = computed(() => {
     },
     COMPLETED: {
       badge: 'badge-info',
-      icon: 'tabler:check-circle',
+      icon: 'tabler:check',
       text: 'Completed',
       description: 'Service completed',
     },

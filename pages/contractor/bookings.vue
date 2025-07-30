@@ -217,7 +217,7 @@ definePageMeta({
 
 // Head meta
 useHead({
-  title: 'My Orders - Contractor Dashboard',
+  title: 'My Bookings - Contractor Dashboard',
 })
 
 // Composables
