@@ -80,18 +80,62 @@ model Contractor {
   id          Int      @id @default(autoincrement())
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status      Int      @default(0) // 0: pending, 1: approved, -1: rejected
-  description String
-  categories  String
-  experience  String?
-  portfolio   String?
-  price       String?
+  
+  // Application status (keeping as Int for backward compatibility, will migrate to enum later)
+  status      Int      @default(0) // 0=PENDING, 1=APPROVED, 2=REJECTED, 3=SUSPENDED
+  
+  // Required profile information
+  description String   // Service description
+  categories  String   // JSON array of selected categories
+  
+  // Optional profile information
+  experience  String?  // Years of experience description
+  portfolio   String?  // Portfolio description or links
+  price       String?  // Existing price field (will be migrated to priceRange)
+  
+  // New fields (all optional for safe migration)
+  priceRange  String?  // Price range or "negotiable"
+  availability String? // WEEKDAYS, WEEKENDS, MORNINGS, EVENINGS, FLEXIBLE
+  
+  // Contact and business info
+  phone       String?
+  website     String?
+  socialLinks String?  // JSON object with social media links
+  
+  // Location and service area
+  serviceArea String?  // Areas where services are provided
+  
+  // Admin notes and moderation
+  adminNotes     String? // Internal admin notes
+  rejectionReason String? // Reason for rejection
+  
+  // Timestamps (keeping existing structure)
   createdAt   DateTime @default(now())
+  appliedAt   DateTime? // Will be populated from createdAt
+  approvedAt  DateTime?
   updatedAt   DateTime @updatedAt
-
+  
+  // Relations
   services    Service[]
 
   @@map("contractor")
+}
+
+// Will be added later after data migration
+// enum ContractorStatus {
+//   PENDING
+//   APPROVED
+//   REJECTED
+//   SUSPENDED
+// }
+
+model ContractorCategory {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+  
+  @@map("contractor_category")
 }
 
 model Service {

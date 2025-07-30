@@ -171,16 +171,99 @@ NUXT_PUBLIC_BASE_URL="https://your-domain.com"
 ### Database Tools
 - **Prisma Studio**: Visual database browser
 - **Prisma Migrate**: Database schema migrations
+- **Data Migrations**: Automated data migration system
 - **Database Seeding**: Optional data seeding capabilities
+
+## 🔄 Migration System
+
+This project includes an automated data migration system that works alongside Prisma schema migrations.
+
+### Migration Types
+
+**Schema Migrations (Prisma)**
+- Managed by `prisma migrate` commands
+- Handle database structure changes
+- Stored in `prisma/migrations/`
+
+**Data Migrations (Custom)**
+- Managed by our custom migration runner
+- Handle data transformations and seeding
+- Stored in `scripts/migrations/`
+- Tracked in `_data_migrations` table
+
+### Migration Commands
+
+```bash
+# Development (fast startup)
+npm run dev              # Normal development without auto-migrations
+
+# Development with migrations
+npm run dev:migrate      # Development with automatic migrations
+
+# Production builds
+npm run build            # Build with automatic migrations
+npm run build:simple     # Build without migrations
+
+# Manual migration control
+npm run migrate          # Run data migrations only
+npm run migrate:dev      # Create new schema migration
+npm run migrate:reset    # Reset and re-run all migrations
+npm run db:push          # Push schema changes without migrations
+npm run db:studio        # Open Prisma Studio
+```
+
+### Creating Data Migrations
+
+1. Create a new file in `scripts/migrations/` with descriptive name:
+   ```typescript
+   // scripts/migrations/003-add-default-settings.ts
+   import { PrismaClient } from '@prisma/client'
+   
+   const prisma = new PrismaClient()
+   
+   async function addDefaultSettings() {
+     // Your migration logic here
+     console.log('🔄 Adding default settings...')
+     // ... migration code
+     console.log('✅ Settings migration completed')
+   }
+   
+   export default addDefaultSettings
+   
+   // Run if called directly
+   if (import.meta.url === `file://${process.argv[1]}`) {
+     addDefaultSettings()
+       .catch(console.error)
+       .finally(() => prisma.$disconnect())
+   }
+   ```
+
+2. Run migrations: `npm run migrate`
+
+The system automatically tracks executed migrations and prevents duplicate runs.
 
 ### Available Scripts
 
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-npm run lint:fix     # Fix ESLint issues automatically
+# Development
+npm run dev              # Start development server
+npm run dev:migrate      # Development with automatic migrations
+
+# Production
+npm run build            # Build with automatic migrations
+npm run build:simple     # Build without migrations
+npm run preview          # Preview production build
+
+# Database & Migrations
+npm run migrate          # Run data migrations
+npm run migrate:dev      # Create new schema migration
+npm run migrate:reset    # Reset and re-run all migrations
+npm run db:push          # Push schema without migrations
+npm run db:studio        # Open Prisma Studio
+
+# Code Quality
+npm run lint             # Run ESLint
+npm run lint:fix         # Fix ESLint issues automatically
 ```
 
 ## 📁 Project Structure
@@ -196,6 +279,8 @@ zapslot/
 ├── pages/                # File-based routing pages
 ├── prisma/               # Database schema and migrations
 ├── public/               # Static assets
+├── scripts/              # Build scripts and data migrations
+│   └── migrations/       # Data migration files
 ├── server/               # API routes and server utilities
 ├── stores/               # Pinia state management
 ├── nuxt.config.ts        # Nuxt configuration
