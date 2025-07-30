@@ -21,9 +21,9 @@ const getAlertClass = (type: string) => {
 const getIcon = (type: string) => {
   switch (type) {
     case 'success':
-      return 'tabler:check-circle'
+      return 'tabler:check'
     case 'error':
-      return 'tabler:x-circle'
+      return 'tabler:x'
     case 'warning':
       return 'tabler:alert-triangle'
     case 'info':

@@ -259,7 +259,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 
 // Get service ID from route
 const route = useRoute()
@@ -307,11 +307,13 @@ const bookingDate = ref('')
 const bookingTime = ref('')
 const bookingNotes = ref('')
 
-// Computed minimum date (tomorrow)
-const minDate = computed(() => {
+// Client-side minimum date to prevent hydration mismatch
+const minDate = ref('')
+
+onMounted(() => {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
-  return tomorrow.toISOString().split('T')[0]
+  minDate.value = tomorrow.toISOString().split('T')[0]
 })
 
 // Utility functions

@@ -66,23 +66,30 @@ const closeDropdown = () => {
           <li>
             <NuxtLink to="/profile" @click="closeDropdown">Profile</NuxtLink>
           </li>
-          <!-- Contractor Panel - only for approved contractors -->
-          <li v-if="authStore.isContractor">
-            <NuxtLink to="/contractor/services" @click="closeDropdown"
-              >My Services</NuxtLink
+          <li v-if="authStore.isAuthenticated">
+            <NuxtLink to="/dashboard" @click="closeDropdown"
+              >Dashboard</NuxtLink
             >
           </li>
-          <li v-if="authStore.isContractor">
-            <NuxtLink to="/contractor/bookings" @click="closeDropdown"
-              >My Bookings</NuxtLink
-            >
-          </li>
-          <!-- Admin Panel - only for admins -->
-          <li v-if="authStore.isAdmin">
-            <NuxtLink to="/admin/contractors" @click="closeDropdown"
-              >Admin Panel</NuxtLink
-            >
-          </li>
+          <ClientOnly>
+            <!-- Contractor Panel - only for approved contractors -->
+            <li v-if="authStore.isContractor">
+              <NuxtLink to="/contractor/services" @click="closeDropdown"
+                >My Services</NuxtLink
+              >
+            </li>
+            <li v-if="authStore.isContractor">
+              <NuxtLink to="/contractor/bookings" @click="closeDropdown"
+                >My Bookings</NuxtLink
+              >
+            </li>
+            <!-- Admin Panel - only for admins -->
+            <li v-if="authStore.isAdmin">
+              <NuxtLink to="/admin/contractors" @click="closeDropdown"
+                >Admin Panel</NuxtLink
+              >
+            </li>
+          </ClientOnly>
           <hr class="my-2" >
           <li>
             <button @click="authStore.signOut()">Logout</button>

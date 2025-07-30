@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
-const { formatDate, formatDateRelative } = useDateFormat()
+const { formatDate } = useDateFormat()
 
 // Page metadata
 useHead({
@@ -68,6 +68,19 @@ useHead({
         </div>
       </div>
 
+      <!-- My Bookings Section -->
+      <div class="mb-8">
+        <div class="mb-6 flex items-center justify-between">
+          <h2 class="text-base-content text-2xl font-bold">My Bookings</h2>
+          <NuxtLink to="/my-bookings" class="btn btn-primary btn-sm">
+            <Icon name="tabler:list" class="h-4 w-4" />
+            View All Bookings
+          </NuxtLink>
+        </div>
+
+        <ClientBookingsPreview />
+      </div>
+
       <!-- Quick Actions -->
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- Profile Quick View -->
@@ -132,7 +145,7 @@ useHead({
                 <div class="badge badge-primary badge-sm" />
                 <span class="flex-1">Signed in with GitHub</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ formatDateRelative(authStore.user.updatedAt) }}
+                  <NuxtTime :datetime="authStore.user.updatedAt" relative />
                 </span>
               </div>
             </div>

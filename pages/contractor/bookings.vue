@@ -30,7 +30,7 @@
       <div class="stat bg-base-100 rounded-lg shadow">
         <div class="stat-title">This Month</div>
         <div class="stat-value text-info">{{ monthlyCount }}</div>
-        <div class="stat-desc">Bookings</div>
+        <div class="stat-desc">Orders</div>
       </div>
     </div>
 
