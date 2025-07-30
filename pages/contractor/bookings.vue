@@ -8,6 +8,10 @@
           Manage incoming orders and bookings
         </p>
       </div>
+      <button class="btn btn-outline" @click="fetchContractorBookings()">
+        <Icon name="tabler:refresh" class="h-4 w-4" />
+        Refresh
+      </button>
     </div>
 
     <!-- Statistics Cards -->
@@ -51,138 +55,17 @@
       </select>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="isLoading" class="flex justify-center py-12">
-      <span class="loading loading-spinner loading-lg" />
-    </div>
-
-    <!-- Bookings List -->
-    <div v-else-if="filteredBookings.length > 0" class="space-y-4">
-      <div
-        v-for="booking in filteredBookings"
-        :key="booking.id"
-        class="card bg-base-100 shadow-lg"
-      >
-        <div class="card-body">
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="mb-3 flex items-center gap-3">
-                <h3 class="card-title">
-                  {{ booking.service?.title || 'Unknown Service' }}
-                </h3>
-                <div
-                  :class="{
-                    'badge badge-warning': booking.status === 'PENDING',
-                    'badge badge-success': booking.status === 'CONFIRMED',
-                    'badge badge-error': booking.status === 'CANCELLED',
-                    'badge badge-info': booking.status === 'COMPLETED',
-                  }"
-                >
-                  {{ booking.status }}
-                </div>
-              </div>
-
-              <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <p class="text-base-content/70 text-sm">Client</p>
-                  <p class="font-medium">
-                    {{ booking.client?.name || 'Unknown Client' }}
-                  </p>
-                  <p class="text-base-content/70 text-sm">
-                    {{ booking.client?.email || 'No email' }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-base-content/70 text-sm">Scheduled Date</p>
-                  <p class="font-medium">
-                    {{ formatDate(booking.scheduledAt) }}
-                  </p>
-                  <p class="text-base-content/70 text-sm">
-                    {{ formatTime(booking.scheduledAt) }}
-                  </p>
-                </div>
-              </div>
-
-              <div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div v-if="booking.duration">
-                  <p class="text-base-content/70 text-sm">Duration</p>
-                  <p class="font-medium">{{ booking.duration }} minutes</p>
-                </div>
-                <div v-if="booking.totalPrice">
-                  <p class="text-base-content/70 text-sm">Price</p>
-                  <p class="font-medium">${{ booking.totalPrice }}</p>
-                </div>
-                <div>
-                  <p class="text-base-content/70 text-sm">Booked</p>
-                  <p class="font-medium">{{ formatDate(booking.createdAt) }}</p>
-                </div>
-              </div>
-
-              <div v-if="booking.notes" class="mb-4">
-                <p class="text-base-content/70 text-sm">Client Notes</p>
-                <p class="bg-base-200 rounded p-3 text-sm">
-                  {{ booking.notes }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="ml-4 flex flex-col gap-2">
-              <div
-                v-if="booking.status === 'PENDING'"
-                class="flex flex-col gap-2"
-              >
-                <button
-                  class="btn btn-success btn-sm"
-                  :disabled="updatingStatus"
-                  @click="updateBookingStatus(booking.id, 'CONFIRMED')"
-                >
-                  <span
-                    v-if="updatingStatus"
-                    class="loading loading-spinner loading-xs mr-1"
-                  />
-                  Confirm
-                </button>
-                <button
-                  class="btn btn-error btn-sm"
-                  :disabled="updatingStatus"
-                  @click="updateBookingStatus(booking.id, 'CANCELLED')"
-                >
-                  Reject
-                </button>
-              </div>
-
-              <div
-                v-else-if="booking.status === 'CONFIRMED'"
-                class="flex flex-col gap-2"
-              >
-                <button
-                  class="btn btn-info btn-sm"
-                  :disabled="updatingStatus"
-                  @click="updateBookingStatus(booking.id, 'COMPLETED')"
-                >
-                  Complete
-                </button>
-                <button
-                  class="btn btn-error btn-sm"
-                  :disabled="updatingStatus"
-                  @click="updateBookingStatus(booking.id, 'CANCELLED')"
-                >
-                  Cancel
-                </button>
-              </div>
-
-              <div v-else class="text-base-content/50 text-sm">
-                No actions available
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Enhanced Bookings Table -->
+    <ContractorBookingsTable
+      :bookings="filteredBookings"
+      :loading="isLoading"
+      @update-status="updateBookingStatus"
+      @bulk-action="handleBulkAction"
+      @refresh="fetchContractorBookings"
+    />
 
     <!-- Empty State -->
-    <div v-else class="py-12 text-center">
+    <div v-if="!isLoading && bookings.length === 0" class="py-12 text-center">
       <svg
         class="text-base-content/30 mx-auto mb-4 h-24 w-24"
         fill="none"
@@ -207,7 +90,6 @@
 <script setup lang="ts">
 import { useBookings } from '~/composables/useBookings'
 import { useNotifications } from '~/composables/useNotifications'
-import { useDateFormat } from '~/composables/useDateFormat'
 
 // Define page meta
 definePageMeta({
@@ -228,7 +110,6 @@ const {
   updateBookingStatus: updateStatus,
 } = useBookings()
 const { success: showSuccess, error: showError } = useNotifications()
-const { formatDate, formatTime } = useDateFormat()
 
 // Reactive data
 const statusFilter = ref('')
@@ -299,6 +180,27 @@ const updateBookingStatus = async (
     showError('Failed to update booking status')
   } finally {
     updatingStatus.value = false
+  }
+}
+
+const handleBulkAction = async (bookingIds: number[], action: string) => {
+  try {
+    const response = await $fetch('/api/contractor/bookings/bulk-action', {
+      method: 'POST',
+      body: {
+        bookingIds,
+        action,
+      },
+    })
+
+    showSuccess('Bulk Action Successful', response.message)
+    await fetchContractorBookings()
+  } catch (err: unknown) {
+    const errorData = err as { data?: { message?: string } }
+    showError(
+      'Bulk Action Failed',
+      errorData.data?.message || 'Failed to perform bulk action'
+    )
   }
 }
 

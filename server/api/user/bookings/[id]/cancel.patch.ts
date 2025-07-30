@@ -36,6 +36,18 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Check if booking can be cancelled (at least 2 hours before scheduled time)
+  const scheduledTime = new Date(booking.scheduledAt)
+  const twoHoursFromNow = new Date(Date.now() + 2 * 60 * 60 * 1000)
+
+  if (scheduledTime <= twoHoursFromNow) {
+    throw createError({
+      statusCode: 400,
+      statusMessage:
+        'Cannot cancel booking less than 2 hours before scheduled time',
+    })
+  }
+
   const updatedBooking = await prisma.booking.update({
     where: { id: Number(bookingId) },
     data: {
