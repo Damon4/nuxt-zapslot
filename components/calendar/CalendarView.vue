@@ -52,9 +52,7 @@
           {{ todayBookings.length }}
         </div>
         <div class="stat-desc">
-          {{
-            todayBookings.filter((b) => b.status === 'CONFIRMED').length
-          }}
+          {{ todayBookings.filter((b) => b.status === 'CONFIRMED').length }}
           confirmed
         </div>
       </div>
@@ -65,9 +63,7 @@
           {{ thisWeekBookings.length }}
         </div>
         <div class="stat-desc">
-          {{
-            thisWeekBookings.filter((b) => b.status === 'PENDING').length
-          }}
+          {{ thisWeekBookings.filter((b) => b.status === 'PENDING').length }}
           pending
         </div>
       </div>
@@ -406,13 +402,13 @@ onMounted(() => {
 }
 
 :deep(.custom-calendar) {
-  --fc-border-color: theme('colors.base-300');
-  --fc-button-text-color: theme('colors.base-content');
-  --fc-button-bg-color: theme('colors.base-200');
-  --fc-button-border-color: theme('colors.base-300');
-  --fc-button-hover-bg-color: theme('colors.base-300');
-  --fc-button-active-bg-color: theme('colors.primary');
-  --fc-today-bg-color: theme('colors.primary / 0.1');
+  --fc-border-color: #d6d3d1;
+  --fc-button-text-color: #0f172a;
+  --fc-button-bg-color: #f1f5f9;
+  --fc-button-border-color: #d6d3d1;
+  --fc-button-hover-bg-color: #e2e8f0;
+  --fc-button-active-bg-color: #3b82f6;
+  --fc-today-bg-color: rgba(59, 130, 246, 0.1);
 }
 
 :deep(.fc-toolbar-title) {
@@ -452,19 +448,19 @@ onMounted(() => {
 }
 
 :deep(.fc-day-today) {
-  background-color: theme('colors.primary / 0.05') !important;
+  background-color: rgba(59, 130, 246, 0.05) !important;
 }
 
 :deep(.fc-col-header-cell) {
-  background-color: theme('colors.base-200');
-  border-color: theme('colors.base-300');
+  background-color: #f1f5f9;
+  border-color: #d6d3d1;
 }
 
 :deep(.fc-scrollgrid) {
-  border-color: theme('colors.base-300');
+  border-color: #d6d3d1;
 }
 
 :deep(.fc-theme-standard td, .fc-theme-standard th) {
-  border-color: theme('colors.base-300');
+  border-color: #d6d3d1;
 }
 </style>
