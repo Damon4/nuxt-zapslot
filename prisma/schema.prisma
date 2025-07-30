@@ -76,6 +76,14 @@ model Verification {
   @@map("verification")
 }
 
+model DataMigration {
+  id         String   @id
+  name       String
+  executed_at DateTime
+
+  @@map("_data_migrations")
+}
+
 model Contractor {
   id          Int      @id @default(autoincrement())
   userId      String   @unique
