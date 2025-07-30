@@ -76,7 +76,14 @@
 
       <div class="stat bg-base-100 rounded-lg shadow-sm">
         <div class="stat-title">Revenue</div>
-        <div class="stat-value text-accent text-2xl">${{ weeklyRevenue }}</div>
+        <div class="stat-value text-accent text-2xl">
+          ${{
+            Number(weeklyRevenue).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
+          }}
+        </div>
         <div class="stat-desc">This week</div>
       </div>
     </div>
