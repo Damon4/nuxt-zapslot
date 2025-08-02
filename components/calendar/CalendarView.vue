@@ -90,7 +90,7 @@
 
     <!-- Calendar Component -->
     <div class="card bg-base-100 shadow-lg">
-      <div class="card-body p-4">
+      <div class="card-body p-0">
         <FullCalendar
           ref="calendar"
           :options="calendarOptions"
@@ -364,11 +364,7 @@ const getCalendarOptions = () => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
   firstDay: 1, // Start week on Monday
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: 'dayGridMonth,timeGridWeek,timeGridDay',
-  },
+  headerToolbar: false as const, // Hide the default toolbar
   businessHours: businessHours.value,
   selectConstraint: 'businessHours',
   eventConstraint: 'businessHours',
@@ -392,8 +388,21 @@ const getCalendarOptions = () => ({
     )
 
     if (!isWorkingDay && props.availability && props.availability.length > 0) {
-      info.el.style.backgroundColor = '#f3f4f6'
+      info.el.style.backgroundColor = 'var(--color-base-200)'
       info.el.style.opacity = '0.6'
+      info.el.style.backgroundImage =
+        'repeating-linear-gradient(45deg, transparent, transparent 10px, color-mix(in srgb, var(--color-base-300) 40%, transparent) 10px, color-mix(in srgb, var(--color-base-300) 40%, transparent) 20px)'
+      info.el.style.position = 'relative'
+    }
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventDidMount: (info: any) => {
+    // Add data attributes for styling
+    if (info.event.extendedProps?.booking) {
+      info.el.setAttribute('data-status', info.event.extendedProps.status)
+    }
+    if (info.event.extendedProps?.type === 'blocked') {
+      info.el.setAttribute('data-type', 'blocked')
     }
   },
 })
@@ -438,9 +447,13 @@ const calendarEvents = computed(() => {
       start: `${dateStr}T${slot.startTime}:00`,
       end: `${dateStr}T${slot.endTime}:00`,
       display: isMonthView ? 'block' : 'background',
-      backgroundColor: isMonthView ? '#dc2626' : '#fee2e2', // Solid red for month, light red for time views
-      borderColor: isMonthView ? '#dc2626' : '#fca5a5',
-      textColor: '#ffffff',
+      backgroundColor: isMonthView
+        ? '#9ca3af'
+        : 'color-mix(in srgb, var(--color-neutral) 25%, transparent)', // Gray-400 for month, neutral-25% for time views
+      borderColor: isMonthView
+        ? '#6b7280'
+        : 'color-mix(in srgb, var(--color-neutral) 35%, transparent)', // Gray-500 border for month, neutral-35% for time views
+      textColor: isMonthView ? '#ffffff' : 'var(--color-base-content)', // White for month, base-content for time views
       extendedProps: {
         blockedSlot: slot,
         type: 'blocked',
@@ -537,30 +550,71 @@ onMounted(() => {
 }
 
 :deep(.custom-calendar) {
-  --fc-border-color: #374151;
-  --fc-button-text-color: #f9fafb;
-  --fc-button-bg-color: #374151;
-  --fc-button-border-color: #374151;
-  --fc-button-hover-bg-color: #4b5563;
-  --fc-button-active-bg-color: #3b82f6;
-  --fc-today-bg-color: rgba(59, 130, 246, 0.2);
-  --fc-day-other-bg-color: #1f2937;
-  --fc-non-business-color: rgba(31, 41, 55, 0.8);
+  --fc-border-color: var(--color-base-300);
+  --fc-button-text-color: var(--color-base-content);
+  --fc-button-bg-color: var(--color-base-100);
+  --fc-button-border-color: var(--color-base-300);
+  --fc-button-hover-bg-color: var(--color-base-200);
+  --fc-button-active-bg-color: var(--color-primary);
+  --fc-today-bg-color: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    transparent
+  );
+  --fc-day-other-bg-color: var(--color-base-200);
+  --fc-non-business-color: color-mix(
+    in srgb,
+    var(--color-base-300) 50%,
+    transparent
+  );
+}
+
+/* Force FullCalendar to use theme colors for header */
+:deep(.custom-calendar .fc-scrollgrid-sync-table) {
+  background: var(--color-base-100) !important;
+}
+
+:deep(.custom-calendar .fc-scrollgrid) {
+  border-color: var(--color-base-300) !important;
+  background: var(--color-base-100) !important;
+}
+
+/* Header background and text visibility */
+:deep(.custom-calendar .fc-col-header) {
+  background-color: var(--color-base-200) !important;
+  border-bottom: 2px solid var(--color-base-300) !important;
+}
+
+:deep(.custom-calendar .fc-scrollgrid-section-header) {
+  background-color: var(--color-base-200) !important;
+}
+
+:deep(.custom-calendar .fc-scrollgrid-section-header > *) {
+  background-color: var(--color-base-200) !important;
 }
 
 :deep(.fc-toolbar-title) {
   display: none;
 }
 
+/* Hide default FullCalendar buttons, we use our own */
 :deep(.fc-button-group) {
   display: none;
 }
 
+/* But show our custom view buttons */
+.btn-group {
+  display: flex !important;
+}
+
 :deep(.fc-daygrid-event) {
-  border-radius: 4px;
-  padding: 2px 4px;
+  border-radius: 6px;
+  padding: 2px 6px;
   font-size: 12px;
   font-weight: 500;
+  margin: 1px 2px;
+  border: 1px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.fc-timegrid-event) {
@@ -568,6 +622,8 @@ onMounted(() => {
   padding: 2px 4px;
   font-size: 11px;
   font-weight: 500;
+  border: 1px solid;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.fc-event-title) {
@@ -588,87 +644,259 @@ onMounted(() => {
   background-color: rgba(59, 130, 246, 0.05) !important;
 }
 
-:deep(.fc-col-header-cell) {
-  background-color: #374151 !important;
-  border-color: #4b5563 !important;
-  color: #f9fafb !important;
+:deep(.custom-calendar .fc-theme-standard .fc-col-header-cell) {
+  background-color: var(--color-base-200) !important;
+  border-color: var(--color-base-300) !important;
+  color: var(--color-base-content) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  padding: 10px 8px;
+}
+
+/* Separate styling for th elements with stronger background */
+:deep(.custom-calendar .fc-theme-standard th) {
+  background-color: var(--color-base-200) !important;
+  border-color: var(--color-base-300) !important;
+  color: var(--color-base-content) !important;
+}
+
+/* Force header row background */
+:deep(
+  .custom-calendar
+    .fc-theme-standard
+    .fc-scrollgrid-section-header
+    .fc-scrollgrid-sync-table
+) {
+  background-color: var(--color-base-200) !important;
+}
+
+:deep(.custom-calendar .fc-theme-standard .fc-col-header-cell a) {
+  color: var(--color-base-content) !important;
+  text-decoration: none;
   font-weight: 600;
 }
 
-:deep(.fc-col-header-cell a) {
-  color: #f9fafb !important;
-  text-decoration: none;
+:deep(.custom-calendar .fc-theme-standard .fc-col-header-cell-cushion) {
+  color: var(--color-base-content) !important;
+  font-weight: 600;
 }
 
-:deep(.fc-daygrid-day) {
-  background-color: #111827 !important;
-  color: #f9fafb !important;
-  border-color: #374151 !important;
+/* Enhanced header text contrast */
+:deep(.custom-calendar .fc-col-header-cell .fc-col-header-cell-cushion) {
+  color: var(--color-base-content) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px hsla(var(--color-base-content), 0.2);
 }
 
-:deep(.fc-daygrid-day-number) {
-  color: #f9fafb !important;
+:deep(.custom-calendar .fc-theme-standard .fc-daygrid-day) {
+  background-color: var(--color-base-100) !important;
+  color: var(--color-base-content) !important;
+  border-color: var(--color-base-300) !important;
+}
+
+:deep(.custom-calendar .fc-theme-standard .fc-daygrid-day-number) {
+  color: var(--color-base-content) !important;
   font-weight: 500;
   padding: 8px;
+  transition: all 0.2s ease;
 }
 
-:deep(.fc-day-other .fc-daygrid-day-number) {
-  color: #6b7280 !important;
+:deep(.custom-calendar .fc-theme-standard .fc-daygrid-day-number:hover) {
+  background-color: var(--color-base-200);
+  border-radius: 6px;
 }
 
-:deep(.fc-day-disabled) {
-  background-color: #1f2937 !important;
-  color: #4b5563 !important;
-}
-
-:deep(.fc-day-disabled .fc-daygrid-day-number) {
-  color: #4b5563 !important;
-}
-
-:deep(.fc-scrollgrid) {
-  border-color: #374151 !important;
-}
-
-:deep(.fc-theme-standard td, .fc-theme-standard th) {
-  border-color: #374151 !important;
-}
-
-/* Weekend days styling */
-:deep(.fc-day-sat, .fc-day-sun) {
-  background-color: #1f2937 !important;
+:deep(
+  .custom-calendar .fc-theme-standard .fc-day-other .fc-daygrid-day-number
+) {
+  color: color-mix(
+    in srgb,
+    var(--color-base-content) 60%,
+    transparent
+  ) !important;
   opacity: 0.6;
 }
 
-:deep(.fc-day-sat .fc-daygrid-day-number, .fc-day-sun .fc-daygrid-day-number) {
-  color: #6b7280 !important;
+/* Disabled/non-working days styling */
+:deep(.fc-day-disabled) {
+  background-color: var(--color-base-200) !important;
+  color: color-mix(
+    in srgb,
+    var(--color-base-content) 60%,
+    transparent
+  ) !important;
+}
+
+:deep(.fc-day-disabled .fc-daygrid-day-number) {
+  color: color-mix(
+    in srgb,
+    var(--color-base-content) 50%,
+    transparent
+  ) !important;
+  opacity: 0.5;
+}
+
+:deep(.fc-scrollgrid) {
+  border-color: var(--color-base-300) !important;
+}
+
+:deep(.fc-theme-standard td, .fc-theme-standard th) {
+  border-color: var(--color-base-300) !important;
+}
+
+/* Weekend days styling - but not today */
+:deep(.fc-day-sat:not(.fc-day-today), .fc-day-sun:not(.fc-day-today)) {
+  background-color: var(--color-base-200) !important;
+  opacity: 0.8;
+}
+
+:deep(
+  .fc-day-sat:not(.fc-day-today) .fc-daygrid-day-number,
+  .fc-day-sun:not(.fc-day-today) .fc-daygrid-day-number
+) {
+  color: color-mix(
+    in srgb,
+    var(--color-base-content) 70%,
+    transparent
+  ) !important;
   font-style: italic;
 }
 
 /* Business hours vs non-business styling */
 :deep(.fc-non-business) {
-  background-color: #1f2937 !important;
-  opacity: 0.7;
+  background-color: var(--color-base-200) !important;
+  opacity: 0.6;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    color-mix(in srgb, var(--color-base-300) 40%, transparent) 10px,
+    color-mix(in srgb, var(--color-base-300) 40%, transparent) 20px
+  );
 }
 
 /* Past days styling */
 :deep(.fc-day-past:not(.fc-day-today)) {
-  opacity: 0.5;
+  opacity: 0.4;
+  background-color: var(--color-base-200) !important;
 }
 
 :deep(.fc-day-past:not(.fc-day-today) .fc-daygrid-day-number) {
-  color: #4b5563 !important;
+  color: color-mix(
+    in srgb,
+    var(--color-base-content) 60%,
+    transparent
+  ) !important;
 }
 
-/* Today highlighting */
-:deep(.fc-day-today) {
-  background-color: rgba(59, 130, 246, 0.2) !important;
-  border-color: #3b82f6 !important;
+/* Today highlighting - highest priority */
+:deep(.custom-calendar .fc-theme-standard .fc-day-today) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 8%,
+    transparent
+  ) !important;
+  border-color: var(--color-primary) !important;
+  position: relative;
+  opacity: 1 !important; /* Override weekend opacity */
 }
 
-:deep(.fc-day-today .fc-daygrid-day-number) {
-  color: #60a5fa !important;
+:deep(
+  .custom-calendar .fc-theme-standard .fc-day-today .fc-daygrid-day-number
+) {
+  color: var(--color-primary-content) !important;
   font-weight: 700;
-  background-color: rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
+  background-color: var(--color-primary);
+  color: var(--color-primary-content) !important;
+  border-radius: 8px;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px;
+  font-style: normal !important; /* Override weekend italic */
+}
+
+/* Blocked slots styling */
+:deep(.fc-event[data-event-id^='blocked-']) {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    color-mix(in srgb, var(--color-base-content) 10%, transparent) 3px,
+    color-mix(in srgb, var(--color-base-content) 10%, transparent) 6px
+  );
+  opacity: 0.8;
+}
+
+:deep(.fc-event[data-event-id^='blocked-'] .fc-event-title) {
+  font-style: italic;
+  font-size: 10px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Background blocked events in time views */
+:deep(.fc-bg-event[data-event-id^='blocked-']) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-neutral) 20%,
+    transparent
+  ) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-neutral) 30%,
+    transparent
+  ) !important;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    color-mix(in srgb, var(--color-neutral) 10%, transparent) 8px,
+    color-mix(in srgb, var(--color-neutral) 10%, transparent) 16px
+  ) !important;
+  opacity: 0.6 !important;
+}
+
+/* Blocked time slots in timegrid views */
+:deep(.fc-timegrid .fc-bg-event[data-event-id^='blocked-']) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-neutral) 25%,
+    transparent
+  ) !important;
+  border: 1px solid color-mix(in srgb, var(--color-neutral) 35%, transparent) !important;
+  border-radius: 4px;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    color-mix(in srgb, var(--color-base-content) 8%, transparent) 6px,
+    color-mix(in srgb, var(--color-base-content) 8%, transparent) 12px
+  ) !important;
+}
+
+/* Booking status colors */
+:deep(.fc-event[data-status='PENDING']) {
+  background-color: #f59e0b !important;
+  border-color: #d97706 !important;
+}
+
+:deep(.fc-event[data-status='CONFIRMED']) {
+  background-color: #10b981 !important;
+  border-color: #059669 !important;
+}
+
+:deep(.fc-event[data-status='CANCELLED']) {
+  background-color: #6b7280 !important;
+  border-color: #4b5563 !important;
+}
+
+:deep(.fc-event[data-status='COMPLETED']) {
+  background-color: #3b82f6 !important;
+  border-color: #2563eb !important;
 }
 </style>
