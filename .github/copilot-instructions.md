@@ -293,17 +293,13 @@ AUTO-APPROVED (1) -> SUSPENDED (3) -> ACTIVE (1)
 19. 🚚 Logistics and Transportation
 20. 📋 Other
 
-### Availability Types
+### Availability System
 
-```typescript
-enum AvailabilityType {
-  WEEKDAYS = 'WEEKDAYS',
-  WEEKENDS = 'WEEKENDS', 
-  MORNINGS = 'MORNINGS',
-  EVENINGS = 'EVENINGS',
-  FLEXIBLE = 'FLEXIBLE'
-}
-```
+The availability system is based on detailed contractor availability schedules:
+
+- **ContractorAvailability**: Day-of-week based availability with specific start/end times
+- **TimeSlot**: Blocked time slots for specific dates
+- **Service booking**: Duration-based slot calculation with conflict detection
 
 ## 🔄 Development Workflow
 
