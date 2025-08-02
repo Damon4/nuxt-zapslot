@@ -29,12 +29,15 @@ export default defineEventHandler(async (event) => {
     if (existingContractor) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Contractor application already exists',
+        statusMessage: 'Active contractor application already exists',
       })
     }
 
     const validatedData = contractorApplicationSchema.parse(body)
 
+    const now = new Date()
+
+    // Create new contractor (no need to handle status 0 as profiles are deleted completely)
     const contractor = await prisma.contractor.create({
       data: {
         userId: user.id,
@@ -43,7 +46,9 @@ export default defineEventHandler(async (event) => {
         experience: validatedData.experience,
         portfolio: validatedData.portfolio,
         price: validatedData.price,
-        status: 0, // pending
+        status: 1, // automatically approved
+        appliedAt: now,
+        approvedAt: now, // approved immediately
       },
     })
 

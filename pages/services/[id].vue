@@ -202,6 +202,7 @@
                     type="date"
                     class="input input-bordered bg-base-100 text-base-content"
                     :min="minDate"
+                    :max="maxDate"
                   >
                 </div>
 
@@ -211,11 +212,44 @@
                       >Preferred Time</span
                     >
                   </label>
-                  <input
+                  <select
                     v-model="bookingTime"
-                    type="time"
-                    class="input input-bordered bg-base-100 text-base-content"
+                    class="select select-bordered bg-base-100 text-base-content"
+                    :disabled="
+                      !bookingDate || availableTimesForDate.length === 0
+                    "
                   >
+                    <option value="" disabled>
+                      {{
+                        availableTimesForDate.length === 0
+                          ? 'No available times'
+                          : 'Select time'
+                      }}
+                    </option>
+                    <option
+                      v-for="slot in availableTimesForDate"
+                      :key="slot.time"
+                      :value="slot.time"
+                    >
+                      {{ formatTime(slot.time) }}
+                    </option>
+                  </select>
+                  <label v-if="slotsLoading" class="label">
+                    <span class="label-text-alt text-primary-content/70">
+                      <span class="loading loading-spinner loading-xs mr-1" />
+                      Loading available times...
+                    </span>
+                  </label>
+                  <label
+                    v-else-if="
+                      bookingDate && availableTimesForDate.length === 0
+                    "
+                    class="label"
+                  >
+                    <span class="label-text-alt text-warning">
+                      No available times for this date
+                    </span>
+                  </label>
                 </div>
 
                 <div class="form-control">
@@ -250,6 +284,17 @@
                   confirmation.</span
                 >
               </div>
+
+              <div
+                v-if="nextAvailableSlot && !slotsLoading"
+                class="alert alert-success mt-2 text-sm"
+              >
+                <Icon name="tabler:calendar-check" class="h-4 w-4" />
+                <span>
+                  Next available: {{ formatDate(nextAvailableSlot.date) }} at
+                  {{ formatTime(nextAvailableSlot.time) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -259,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 
 // Get service ID from route
 const route = useRoute()
@@ -301,19 +346,75 @@ const service = ref<Service | null>(null)
 const loading = ref(true)
 const error = ref('')
 const bookingLoading = ref(false)
+const slotsLoading = ref(false)
+
+// Available slots
+const availableSlots = ref<
+  Array<{ date: string; time: string; datetime: string }>
+>([])
+const nextAvailableSlot = ref<{
+  date: string
+  time: string
+  datetime: string
+} | null>(null)
 
 // Booking form
 const bookingDate = ref('')
 const bookingTime = ref('')
 const bookingNotes = ref('')
 
-// Client-side minimum date to prevent hydration mismatch
+// Client-side minimum and maximum dates to prevent hydration mismatch
 const minDate = ref('')
+const maxDate = ref('')
 
 onMounted(() => {
-  const tomorrow = new Date()
-  tomorrow.setDate(tomorrow.getDate() + 1)
-  minDate.value = tomorrow.toISOString().split('T')[0]
+  const today = new Date()
+  minDate.value = today.toISOString().split('T')[0]
+
+  // Set today as default date
+  bookingDate.value = today.toISOString().split('T')[0]
+})
+
+// Computed properties
+const availableTimesForDate = computed(() => {
+  if (!bookingDate.value) return []
+
+  const slotsForDate = availableSlots.value.filter(
+    (slot) => slot.date === bookingDate.value
+  )
+
+  // If this is today, filter out past times
+  if (bookingDate.value === minDate.value) {
+    const now = new Date()
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+
+    return slotsForDate.filter((slot) => slot.time >= currentTime)
+  }
+
+  return slotsForDate
+})
+
+// Update max date based on available slots
+const updateDateLimits = () => {
+  if (availableSlots.value.length > 0) {
+    const dates = availableSlots.value
+      .map((slot) => slot.date)
+      .sort((a, b) => a.localeCompare(b))
+    const lastAvailableDate = dates[dates.length - 1]
+    maxDate.value = lastAvailableDate
+  }
+}
+
+// Watch for date changes and reset time if selected time is no longer available
+watch(bookingDate, () => {
+  if (bookingTime.value && availableTimesForDate.value.length > 0) {
+    const isTimeStillAvailable = availableTimesForDate.value.some(
+      (slot) => slot.time === bookingTime.value
+    )
+    if (!isTimeStillAvailable) {
+      bookingTime.value = ''
+    }
+  }
 })
 
 // Utility functions
@@ -349,6 +450,24 @@ const formatAvailability = (availability: string): string => {
   return availabilityMap[availability] || availability
 }
 
+const formatTime = (time: string): string => {
+  const [hours, minutes] = time.split(':')
+  const hour = parseInt(hours, 10)
+  const minute = minutes
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const hour12 = hour % 12 || 12
+  return `${hour12}:${minute} ${ampm}`
+}
+
+const formatDate = (dateStr: string): string => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 // Fetch service details
 const fetchService = async () => {
   try {
@@ -357,11 +476,42 @@ const fetchService = async () => {
       `/api/services/${serviceId}`
     )
     service.value = response.service
+
+    // Fetch available slots after service is loaded
+    await fetchAvailableSlots()
   } catch (err: unknown) {
     const errorData = err as { data?: { message?: string } }
     error.value = errorData.data?.message || 'Service not found'
   } finally {
     loading.value = false
+  }
+}
+
+// Fetch available time slots
+const fetchAvailableSlots = async () => {
+  try {
+    slotsLoading.value = true
+    const response = await $fetch<{
+      availableSlots: Array<{ date: string; time: string; datetime: string }>
+      nextAvailableSlot: { date: string; time: string; datetime: string } | null
+    }>(`/api/services/${serviceId}/available-slots`)
+
+    availableSlots.value = response.availableSlots
+    nextAvailableSlot.value = response.nextAvailableSlot
+
+    // Update date limits based on available slots
+    updateDateLimits()
+
+    // Set the next available slot as default if no time is selected
+    if (nextAvailableSlot.value && !bookingTime.value) {
+      bookingDate.value = nextAvailableSlot.value.date
+      bookingTime.value = nextAvailableSlot.value.time
+    }
+  } catch (err: unknown) {
+    console.error('Failed to fetch available slots:', err)
+    // Don't show error to user, just log it
+  } finally {
+    slotsLoading.value = false
   }
 }
 
@@ -408,5 +558,23 @@ const handleBooking = async () => {
 // Initialize
 onMounted(() => {
   fetchService()
+})
+
+// Watch for date changes to update available times
+watch(bookingDate, async (newDate) => {
+  if (newDate && service.value) {
+    // Filter available slots for the selected date
+    const slotsForDate = availableSlots.value.filter(
+      (slot) => slot.date === newDate
+    )
+
+    // If no time is selected or current time is not available for new date, set first available time
+    if (
+      !bookingTime.value ||
+      !slotsForDate.some((slot) => slot.time === bookingTime.value)
+    ) {
+      bookingTime.value = slotsForDate[0]?.time || ''
+    }
+  }
 })
 </script>

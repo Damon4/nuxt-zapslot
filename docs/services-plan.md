@@ -62,6 +62,13 @@ model Booking {
 - `DELETE /api/contractor/services/:id` - delete service
 - `PATCH /api/contractor/services/:id/toggle` - enable/disable service
 
+### For Contractor Profile Management
+
+- `GET /api/contractor/profile` - get contractor profile
+- `POST /api/contractor/apply` - submit contractor application (auto-approved)
+- `PUT /api/contractor/profile` - update contractor profile
+- `POST /api/contractor/delete` - delete contractor profile and all services
+
 ### For Clients
 
 - `GET /api/services/search` - search and filter services (public)
@@ -145,7 +152,8 @@ model Booking {
 
 ### Service Creation Rules
 
-- Only approved contractors can create services
+- Only active contractors can create services (status = 1)
+- Auto-approval system: all contractor applications immediately approved
 - Max 20 active services per contractor
 - Service title: 10-100 characters
 - Description: 50-2000 characters
@@ -176,11 +184,12 @@ model Booking {
 
 ### Access Rights
 
-- Create services: only approved contractors
+- Create services: only active contractors (status = 1)
 - Edit services: only owner
 - View services: all users
 - Booking: only authorized clients
 - Manage bookings: service owner or client
+- Delete contractor profile: only profile owner (cascades to all services)
 
 ## 6. Notifications
 
@@ -228,11 +237,31 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
 ### ✅ Completed Infrastructure
 - PostgreSQL database with User and Contractor models
 - Authentication system with GitHub OAuth
-- Admin interface for contractor approval
+- **Auto-approval contractor system** (all applications automatically approved)
+- **Contractor profile deletion system** with cascading service removal
 - Profile management for users and contractors
 - Middleware for access control
 
 ### ✅ Completed Stages
+
+**Stage 1: Core Models and API ✅ COMPLETED**
+- Service and Booking models implementation in Prisma
+- Complete database schema with proper relationships
+- Comprehensive API endpoints for CRUD operations
+- Middleware system for access rights and authentication
+
+**Stage 2: Contractor Interface ✅ COMPLETED**
+- Complete contractor service management system
+- Advanced service creation and editing capabilities
+- Booking management with bulk actions
+- Auto-approval contractor application system
+- **Contractor profile deletion system** with service cascade removal
+
+**Stage 3: Public Service Catalog ✅ COMPLETED**
+- Public service discovery with advanced search
+- Category-based filtering and price range filters
+- Service detail pages with integrated booking
+- Complete end-to-end booking workflow
 
 **Stage 4: Client Booking Management ✅ COMPLETED**
 - Individual booking detail pages (`/my-bookings/[id]`)
@@ -252,15 +281,16 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
 - Service detail pages with integrated booking
 - Full end-to-end booking workflow
 
-### 📋 Next Stage
+### 📋 Current Stage
 
-**Stage 7: Calendar Integration**
-- Visual calendar component for booking management
-- Interactive date/time selection interface
-- Availability scheduling and time slot management
-- Calendar-based booking overview
-- Drag-and-drop scheduling interface
-- Time conflict detection
+**Stage 7: Calendar Integration ⏳ IN PROGRESS**
+- ✅ Visual calendar component for booking management (FullCalendar integration)
+- ✅ Interactive date/time selection interface (Month/Week/Day views)
+- ✅ Calendar-based booking overview (Statistics dashboard)
+- ✅ Calendar foundation with responsive design and TypeScript
+- 🔄 Availability scheduling and time slot management (Basic modal)
+- 🔄 Drag-and-drop scheduling interface (Foundation ready)
+- 🔄 Time conflict detection (API endpoints prepared)
 
 **Stage 8: Review & Rating System**
 - Review submission after completed services
@@ -290,33 +320,125 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
 - Performance optimizations and caching strategies
 - Mobile app notifications
 
+## ⚠️ Contractor Profile Deletion System
+
+### Overview
+The system provides complete contractor profile deletion functionality with cascading service removal. This replaces the previous deactivation system for a more permanent solution.
+
+### Features
+- **Complete Profile Removal**: Permanently deletes contractor profile from database
+- **Cascading Deletion**: Automatically removes all contractor's services
+- **Transaction Safety**: Uses database transactions to ensure data consistency
+- **UI Confirmation**: Modal with detailed warnings about permanent deletion
+- **Immediate Effect**: Profile removal is instant with UI updates
+
+### API Implementation
+```typescript
+POST /api/contractor/delete
+// Deletes contractor profile and all associated services
+// Returns: { success: boolean, deletedServices: number }
+```
+
+### Business Logic
+1. Verify user owns the contractor profile
+2. Start database transaction
+3. Delete all contractor's services first
+4. Delete contractor profile
+5. Commit transaction
+6. Return success with deleted services count
+
+### UI Components
+- **Delete Button**: Located in contractor profile management
+- **Confirmation Modal**: Detailed warning about permanent deletion
+- **Success Notification**: Confirms deletion with services count
+- **State Reset**: UI reverts to contractor application form
+
+### Security
+- Only profile owner can delete their contractor profile
+- Requires active authentication session
+- Transaction-based deletion prevents partial deletions
+- No admin override capability (profile owner only)
 
 
-## 8. Implementation Roadmap
 
-### Stage 1: Core Models and API ✅ READY
+## 8. Implementation Roadmap & Current Status
 
-1. Add Service and Booking models to Prisma
-2. Database migration
-3. Create basic API endpoints for CRUD operations
-4. Middleware for access rights check
+### ✅ Completed Stages (1-6)
 
-### Stage 2: Contractor Interface ⏳ PLANNED
+#### Stage 1: Core Models and API ✅ COMPLETED
+1. ✅ Add Service and Booking models to Prisma
+   - Complete Service model with all required fields
+   - Booking model with status management
+   - Proper relationships and constraints
 
-1. Service management page
-2. Service create/edit form
-3. Bookings management page
-4. Integration with existing contractor profile
+2. ✅ Database migration
+   - All migrations applied successfully
+   - Indexes for performance optimization
+   - Data integrity constraints
 
-### Stage 3: Public Service Catalog ⏳ PLANNED
+3. ✅ Create basic API endpoints for CRUD operations
+   - Complete REST API for services and bookings
+   - Proper error handling and validation
+   - Authentication and authorization middleware
 
-1. Service search and filter page
-2. Service detail page
-3. Booking form
-4. Integration with contractor profiles
+4. ✅ Middleware for access rights check
+   - Contractor status verification
+   - Service ownership validation
+   - Booking participant verification
 
-### Stage 4: Client Booking Management ✅ COMPLETED
+#### Stage 2: Contractor Interface ✅ COMPLETED
+1. ✅ Service management page (`/contractor/services`)
+   - Complete service management interface with statistics
+   - "Add Service" button with modal form
+   - Service activation/deactivation toggles
+   - Real-time booking statistics and service metrics
 
+2. ✅ Service create/edit form
+   - Advanced service creation form with validation
+   - Category selection from predefined list
+   - Price type selection (Fixed/Hourly/Negotiable)
+   - Availability configuration options
+   - Service activation/deactivation functionality
+
+3. ✅ Bookings management page (`/contractor/bookings`)
+   - Complete booking management interface
+   - Advanced filtering and sorting capabilities
+   - Bulk actions for multiple bookings
+   - Real-time status updates and notifications
+
+4. ✅ Integration with existing contractor profile
+   - Seamless integration with contractor profile management
+   - Auto-approval system for contractor applications
+   - Profile deletion system with service cascade removal
+
+#### Stage 3: Public Service Catalog ✅ COMPLETED
+1. ✅ Service search and filter page (`/services`)
+   - Advanced search functionality with text queries
+   - Category-based filtering system
+   - Price range filters with negotiable options
+   - Availability filtering (WEEKDAYS, WEEKENDS, etc.)
+   - Pagination with customizable page sizes
+
+2. ✅ Service detail page (`/services/[id]`)
+   - Complete service information display
+   - Contractor profile information
+   - Integrated booking form with date/time selection
+   - Service pricing and availability details
+   - Direct booking functionality
+
+3. ✅ Booking form integration
+   - Date and time selection with validation
+   - Notes field for additional requirements
+   - Price confirmation for different pricing types
+   - Real-time availability checking
+   - Immediate booking confirmation
+
+4. ✅ Integration with contractor profiles
+   - Direct links to contractor profiles
+   - Service provider information display
+   - Contact information and communication options
+
+#### Stage 4: Client Booking Management ✅ COMPLETED
 1. ✅ "My Bookings" page for clients (`/my-bookings`)
    - Full booking management interface with filtering and sorting
    - Statistics display (Total, Pending, Confirmed, Completed, Cancelled)
@@ -337,8 +459,7 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
    - Contractor booking interface at `/contractor/bookings`
    - All technical issues resolved (hydration, icons)
 
-### Stage 5: Booking Details and Actions ⏳ IN PROGRESS
-
+#### Stage 5: Booking Details and Actions ✅ COMPLETED
 1. ✅ Individual booking detail pages (`/my-bookings/[id]`)
    - Complete booking detail interface with service information
    - Contractor details and contact information
@@ -366,16 +487,7 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
    - Real-time status updates with better UX
    - Improved booking statistics and overview
 
-### Completed Features in Stage 5:
-- ✅ Individual booking detail pages with full information
-- ✅ Enhanced cancellation system with time-based policies
-- ✅ Bulk actions for contractor booking management
-- ✅ Advanced table interface with selection capabilities
-- ✅ Improved notification system
-- ✅ Better error handling and user feedback
-
-### Stage 6: Service Management (Contractors) ✅ COMPLETED
-
+#### Stage 6: Service Management & Public Catalog ✅ COMPLETED
 1. ✅ Service creation and management
    - "My Services" page (`/contractor/services`) - Full CRUD interface
    - Service create/edit forms - Advanced validation and UX
@@ -388,19 +500,33 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
    - Service detail pages (`/services/[id]`) - Complete contractor and service info
    - Booking form integration - Date/time selection with validation
 
-### Stage 7: Calendar Integration
+### 🔄 Current Stage
 
-1. **Calendar interface for contractors**
-   - Interactive monthly/weekly calendar views
-   - Booking visualization on calendar
+#### Stage 7: Calendar Integration ⏳ IN PROGRESS
+1. ✅ **Calendar interface foundation**
+   - FullCalendar Vue 3 integration with TypeScript
+   - Month/Week/Day view switching functionality
+   - Calendar statistics dashboard (Today's Bookings, This Week, Available Slots, Revenue)
+   - Responsive design with DaisyUI theme integration
+   - Calendar page at `/contractor/calendar` with proper middleware protection
+
+2. 🔄 **Advanced calendar features** (In Development)
+   - Interactive booking visualization on calendar
    - Drag-and-drop scheduling interface
    - Available time slots highlighting
-   - Calendar-based booking overview
-   - Quick booking creation from calendar
-   - Time conflict detection
+   - Quick booking creation from calendar slots
+   - Time conflict detection system
 
-### Stage 8: Review & Rating System
+3. 📋 **Planned calendar enhancements**
+   - Contractor availability scheduling
+   - Client calendar view for bookings
+   - Calendar export functionality
+   - Recurring booking support
+   - Calendar notifications and reminders
 
+### 📋 Future Stages
+
+#### Stage 8: Review & Rating System 📋 PLANNED
 1. Post-service review functionality
    - Review submission forms for completed bookings
    - Star rating system (1-5 stars)
@@ -413,8 +539,7 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
    - Review filtering and sorting
    - Review moderation tools
 
-### Stage 9: Advanced Search & Analytics
-
+#### Stage 9: Advanced Search & Analytics 📋 PLANNED
 1. **Advanced filtering and search**
    - Complete price range implementation (min/max in UI)
    - Availability filters in search interface
@@ -434,29 +559,38 @@ CREATE INDEX idx_booking_scheduled ON booking(scheduledAt);
    - Peak time identification
    - Pricing optimization suggestions
 
-## Known Issues & Technical Debt
-
-### Stage 5 Completed ✅
-- ✅ Individual booking detail pages implemented (`/my-bookings/[id]`)
-- ✅ Enhanced booking cancellation functionality with time-based policies
-- ✅ Advanced notifications system for all booking actions
-- ✅ Contractor bulk actions for booking management
-- ✅ Improved table interface with selection capabilities
-
-### Remaining Tasks (Next Stages)
-- Calendar view integration for contractors
+#### Stage 10+: Future Enhancements 📋 PLANNED
+- Email notification system for booking updates
 - Real-time notifications (WebSocket/SSE implementation)
-- Email notification system
+- Payment integration with Stripe/PayPal
+- Performance optimizations and caching strategies
+- Mobile app notifications and responsive improvements
+- Multi-language support
+- Advanced analytics and reporting
+- API for third-party integrations
+
+## 9. Known Issues & Technical Debt
+
+### Current Development Focus
+- **Stage 7**: Calendar integration with drag-and-drop functionality
+- **Testing**: Comprehensive Playwright MCP testing across all features
+- **Performance**: Database query optimization and caching strategies
+- **Documentation**: API documentation and user guides
+
+### Remaining High-Priority Tasks
+- Complete calendar integration with advanced scheduling
+- Real-time notifications (WebSocket/SSE implementation)
+- Email notification system for booking updates
 - Review and rating system after completed bookings
 
-### Future Improvements
-- Advanced scheduling calendar component
-- Automated booking reminders
-- Payment integration
-- Advanced analytics and reporting
-- Mobile app notifications
+### Future Technical Improvements
+- Advanced scheduling calendar component with conflict detection
+- Automated booking reminders and notifications
+- Payment integration with Stripe/PayPal
+- Advanced analytics and reporting dashboard
+- Mobile app notifications and responsive improvements
 
-## 9. Technical Details
+## 10. Technical Details
 
 ### Data Validation (Zod Schemas)
 
@@ -498,24 +632,38 @@ const bookingSchema = z.object({
 - `dateTimeUtils.ts` - date and time utilities
 - `availabilityUtils.ts` - availability logic
 
-## 10. Testing
+## 11. Testing & Quality Assurance
 
 ### Unit Tests
-
 - Service and booking data validation
 - Status and access rights business logic
 - Formatting and calculation utilities
 
 ### API Tests
-
 - Service CRUD operations
 - Booking process
 - Access rights and authorization
 - Search and filtering
 
 ### E2E Tests
-
 - Service creation by contractor
-- Service search and booking by client
+- Service search and booking by client  
 - Booking status management
 - Different user roles
+
+### Playwright MCP Testing
+- Real browser interaction testing
+- Complete user workflow testing
+- Visual feedback and screenshots
+- Network request monitoring
+- Console log capture
+
+---
+
+## 📋 Related Documentation
+
+- **[Contractor Usage Guide](./contractor-usage.md)** - User guides and workflows
+- **[Development Guidelines](./development-guidelines.md)** - Coding standards and practices
+- **[Stage Completion Reports](./stage-*-completion-report.md)** - Detailed progress reports
+
+*Last Updated: 2 августа 2025 г.*

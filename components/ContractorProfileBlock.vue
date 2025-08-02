@@ -40,71 +40,128 @@
           <span>{{ statusText }}</span>
         </div>
 
-        <!-- Service provider profile information -->
-        <div
-          v-if="contractor.status === 1"
-          class="grid grid-cols-1 gap-4 md:grid-cols-2"
-        >
+        <!-- Profile information -->
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label class="label">
-              <span class="label-text font-semibold">Service Description</span>
+              <span class="label-text font-semibold">Phone</span>
             </label>
-            <p class="text-sm">{{ contractor.description }}</p>
+            <p class="text-sm">{{ contractor.phone || 'Not provided' }}</p>
           </div>
 
           <div>
             <label class="label">
-              <span class="label-text font-semibold">Categories</span>
+              <span class="label-text font-semibold">Website</span>
             </label>
-            <p class="text-sm">{{ contractor.categories }}</p>
+            <p class="text-sm">{{ contractor.website || 'Not provided' }}</p>
           </div>
 
-          <div v-if="contractor.experience">
+          <div class="md:col-span-2">
             <label class="label">
-              <span class="label-text font-semibold">Work Experience</span>
+              <span class="label-text font-semibold">Description</span>
             </label>
-            <p class="text-sm">{{ contractor.experience }}</p>
+            <p class="text-sm">
+              {{ contractor.description || 'No description provided' }}
+            </p>
           </div>
 
-          <div v-if="contractor.portfolio">
+          <div>
             <label class="label">
-              <span class="label-text font-semibold">Portfolio</span>
+              <span class="label-text font-semibold">Experience</span>
             </label>
-            <p class="text-sm">{{ contractor.portfolio }}</p>
+            <p class="text-sm">{{ contractor.experience || 'Not provided' }}</p>
           </div>
 
-          <div v-if="contractor.price">
+          <div>
             <label class="label">
-              <span class="label-text font-semibold">Service Pricing</span>
+              <span class="label-text font-semibold">Service Categories</span>
             </label>
-            <p class="text-sm">{{ contractor.price }}</p>
+            <p class="text-sm">
+              {{ contractor.categories || 'Not specified' }}
+            </p>
           </div>
         </div>
 
         <!-- Action buttons -->
-        <div v-if="contractor.status === 1" class="card-actions justify-end">
+        <div class="card-actions mt-6 justify-end">
           <button class="btn btn-outline" @click="openEditForm">
-            Edit Profile
+            <Icon name="tabler:edit" size="16" />
+            Edit Contractor Profile
+          </button>
+          <button class="btn btn-error" @click="openDeleteModal">
+            <Icon name="tabler:trash" size="16" />
+            Delete Contractor Profile
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Application form modal -->
+  <!-- Application Modal -->
   <ContractorApplicationModal
     v-if="showApplicationModal"
+    :show="showApplicationModal"
     @close="closeApplicationForm"
     @success="onApplicationSuccess"
   />
 
-  <!-- Edit profile modal -->
+  <!-- Edit Modal -->
   <ContractorEditModal
     v-if="showEditModal && contractor"
+    :show="showEditModal"
     :contractor="contractor"
     @close="closeEditForm"
     @success="onEditSuccess"
   />
+
+  <!-- Delete Confirmation Modal -->
+  <dialog ref="deleteModal" class="modal">
+    <div class="modal-box">
+      <h3 class="text-error text-lg font-bold">Delete Contractor Profile</h3>
+      <div class="py-4">
+        <div class="alert alert-error mb-4">
+          <Icon name="tabler:alert-triangle" />
+          <span class="font-semibold">This action cannot be undone!</span>
+        </div>
+
+        <p class="mb-4 text-sm">This will permanently delete:</p>
+
+        <ul
+          class="text-base-content/70 mb-4 list-inside list-disc space-y-1 text-sm"
+        >
+          <li>Your entire contractor profile</li>
+          <li>All your services and listings</li>
+          <li>Your service provider status</li>
+          <li>All associated contractor data</li>
+        </ul>
+
+        <p class="text-sm font-semibold">
+          You will need to reapply if you want to become a contractor again.
+        </p>
+      </div>
+
+      <div class="modal-action">
+        <button
+          class="btn btn-outline"
+          :disabled="deleting"
+          @click="closeDeleteModal"
+        >
+          Cancel
+        </button>
+        <button
+          class="btn btn-error"
+          :disabled="deleting"
+          @click="deleteContractor"
+        >
+          <span v-if="deleting" class="loading loading-spinner loading-sm" />
+          {{ deleting ? 'Deleting...' : 'Yes, Delete Everything' }}
+        </button>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button @click="closeDeleteModal">close</button>
+    </form>
+  </dialog>
 </template>
 
 <script setup lang="ts">
@@ -118,17 +175,17 @@ const contractor = ref<Contractor | null>(null)
 const isLoading = ref(false)
 const showApplicationModal = ref(false)
 const showEditModal = ref(false)
+const deleting = ref(false)
+const deleteModal = ref<HTMLDialogElement | null>(null)
 
 // Computed properties
 const statusClass = computed(() => {
   if (!contractor.value) return ''
 
   switch (contractor.value.status) {
-    case 0:
-      return 'alert-warning'
     case 1:
       return 'alert-success'
-    case -1:
+    case 3:
       return 'alert-error'
     default:
       return 'alert-info'
@@ -139,12 +196,10 @@ const statusText = computed(() => {
   if (!contractor.value) return ''
 
   switch (contractor.value.status) {
-    case 0:
-      return 'Application under review'
     case 1:
       return 'Application approved - you are now a service provider!'
-    case -1:
-      return 'Application rejected'
+    case 3:
+      return 'Contractor status suspended'
     default:
       return 'Unknown status'
   }
@@ -208,6 +263,51 @@ const onEditSuccess = (updatedContractor: Contractor) => {
   contractor.value = updatedContractor
   closeEditForm()
   success('Service provider profile updated successfully!')
+}
+
+// Deletion functions
+const openDeleteModal = () => {
+  deleteModal.value?.showModal()
+}
+
+const closeDeleteModal = () => {
+  deleteModal.value?.close()
+}
+
+const deleteContractor = async () => {
+  if (!contractor.value) return
+
+  try {
+    deleting.value = true
+
+    const response = (await $fetch('/api/contractor/delete', {
+      method: 'POST',
+    })) as unknown as { success: boolean; deletedServices?: number }
+
+    if (response.success) {
+      success(
+        `Contractor profile deleted. ${response.deletedServices || 0} services were removed.`
+      )
+      // Reset contractor data to null to show the application form
+      contractor.value = null
+      closeDeleteModal()
+    }
+  } catch (err: unknown) {
+    console.error('Error deleting contractor:', err)
+    const errorMessage =
+      err &&
+      typeof err === 'object' &&
+      'data' in err &&
+      err.data &&
+      typeof err.data === 'object' &&
+      'message' in err.data
+        ? (err.data as { message?: string }).message ||
+          'Failed to delete contractor profile'
+        : 'Failed to delete contractor profile'
+    error(errorMessage)
+  } finally {
+    deleting.value = false
+  }
 }
 
 // Load contractor profile on mount

@@ -95,6 +95,11 @@ const closeDropdown = () => {
                   >My Bookings</NuxtLink
                 >
               </li>
+              <li>
+                <NuxtLink to="/contractor/calendar" @click="closeDropdown"
+                  >📅 Calendar</NuxtLink
+                >
+              </li>
             </template>
             <!-- Admin Panel - only for admins -->
             <template v-if="authStore.isAdmin">

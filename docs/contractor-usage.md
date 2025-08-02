@@ -1,7 +1,14 @@
 # Contractor System - Quick Guide
 
 ## Overview
-The contractor functionality allows users to apply for service provider status. The system includes moderation by administrators and integration into the user profile.
+The contractor functionality allows users to apply for service provider status with **automatic approval**. The system includes contractor profile management, service creation, and complete profile deletion capabilities.
+
+## System Features
+- **Auto-Approval**: All contractor applications are automatically approved
+- **Profile Management**: Complete contractor profile editing capabilities  
+- **Service Management**: Create, edit, and manage services
+- **Profile Deletion**: Permanent profile removal with cascading service deletion
+- **Booking Management**: Handle incoming service bookings
 
 ## Components
 
@@ -9,9 +16,10 @@ The contractor functionality allows users to apply for service provider status. 
 The main block for displaying and managing contractor status in the user profile.
 
 **Features:**
-- Display the current application status (pending, approved, rejected)
-- Submit a new application via a modal window
-- Edit contractor profile (for approved contractors)
+- Display the current contractor status (active or suspended)  
+- Submit a new application via a modal window (auto-approved)
+- Edit contractor profile (for active contractors)
+- **Delete contractor profile** with service removal confirmation
 - Automatic data loading on mount
 
 ### 2. ContractorApplicationModal.vue
@@ -57,7 +65,7 @@ Retrieve the contractor profile data of the current user.
 ```
 
 ### POST /api/contractor/apply
-Submit an application for contractor status.
+Submit an application for contractor status (automatically approved).
 
 **Request Body:**
 ```json
@@ -70,6 +78,19 @@ Submit an application for contractor status.
 }
 ```
 
+**Response:** Immediate approval with contractor profile data.
+
+### POST /api/contractor/delete
+Delete contractor profile and all associated services.
+
+**Response:**
+```json
+{
+  "success": true,
+  "deletedServices": 5
+}
+```
+
 ### PUT /api/contractor/profile
 Update the contractor profile.
 
@@ -77,9 +98,10 @@ Update the contractor profile.
 
 ## Contractor Statuses
 
-- **0**: Application submitted, awaiting moderation
-- **1**: Application approved, contractor is active
-- **-1**: Application rejected
+- **1**: Active contractor (default for new applications)
+- **3**: Suspended contractor (admin action only)
+
+**Note**: The system uses automatic approval - all applications immediately receive status 1 (Active).
 
 ## Service Categories
 
@@ -117,7 +139,8 @@ The `ContractorProfileBlock` component is already integrated into the `/profile`
 
 ## Next Steps
 
-1. **Admin Panel**: Create an interface for application moderation
-2. **Notifications**: Add a notification system for application statuses
-3. **Enhanced Profile**: Add photos, ratings, reviews
-4. **Contractor Search**: Public contractor catalog with filtering
+1. **Enhanced Calendar Integration**: Advanced calendar features with drag-and-drop
+2. **Review & Rating System**: Client feedback and contractor ratings  
+3. **Advanced Analytics**: Contractor performance dashboards
+4. **Payment Integration**: Direct payment processing for services
+5. **Mobile App**: Native mobile application for contractors
