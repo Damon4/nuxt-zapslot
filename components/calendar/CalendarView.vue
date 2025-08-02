@@ -10,38 +10,6 @@
           Manage your bookings and availability
         </p>
       </div>
-
-      <!-- View Toggle -->
-      <div class="flex items-center gap-4">
-        <div class="btn-group">
-          <button
-            class="btn btn-sm"
-            :class="{ 'btn-active': currentView === 'dayGridMonth' }"
-            @click="changeView('dayGridMonth')"
-          >
-            Month
-          </button>
-          <button
-            class="btn btn-sm"
-            :class="{ 'btn-active': currentView === 'timeGridWeek' }"
-            @click="changeView('timeGridWeek')"
-          >
-            Week
-          </button>
-          <button
-            class="btn btn-sm"
-            :class="{ 'btn-active': currentView === 'timeGridDay' }"
-            @click="changeView('timeGridDay')"
-          >
-            Day
-          </button>
-        </div>
-
-        <button class="btn btn-outline btn-sm" @click="goToToday">
-          <Icon name="tabler:calendar-event" class="h-4 w-4" />
-          Today
-        </button>
-      </div>
     </div>
 
     <!-- Calendar Stats -->
@@ -209,7 +177,7 @@ const { success } = useNotifications()
 
 // Reactive state
 const calendar = ref()
-const currentView = ref('dayGridMonth')
+const currentView = ref('timeGridDay')
 const selectedDate = ref<Date | null>(null)
 const selectedTime = ref<string | null>(null)
 const selectedBooking = ref<BookingType | null>(null)
@@ -306,7 +274,7 @@ const getBookingColor = (status: string) => {
   return colors[status as keyof typeof colors] || colors.PENDING
 }
 
-const changeView = (view: string) => {
+const _changeView = (view: string) => {
   currentView.value = view
   const calendarApi = calendar.value?.getApi()
   if (calendarApi) {
@@ -322,7 +290,7 @@ const changeView = (view: string) => {
   emit('viewChange', view)
 }
 
-const goToToday = () => {
+const _goToToday = () => {
   const calendarApi = calendar.value?.getApi()
   if (calendarApi) {
     calendarApi.today()
@@ -362,9 +330,13 @@ const handleEventClick = (clickInfo: any) => {
 // Calendar configuration function
 const getCalendarOptions = () => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  initialView: 'dayGridMonth',
+  initialView: 'timeGridDay',
   firstDay: 1, // Start week on Monday
-  headerToolbar: false as const, // Hide the default toolbar
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+  },
   businessHours: businessHours.value,
   selectConstraint: 'businessHours',
   eventConstraint: 'businessHours',
@@ -591,20 +563,6 @@ onMounted(() => {
 
 :deep(.custom-calendar .fc-scrollgrid-section-header > *) {
   background-color: var(--color-base-200) !important;
-}
-
-:deep(.fc-toolbar-title) {
-  display: none;
-}
-
-/* Hide default FullCalendar buttons, we use our own */
-:deep(.fc-button-group) {
-  display: none;
-}
-
-/* But show our custom view buttons */
-.btn-group {
-  display: flex !important;
 }
 
 :deep(.fc-daygrid-event) {
