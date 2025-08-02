@@ -242,6 +242,9 @@ const calendarOptions = computed(() => ({
   selectMirror: true,
   dayMaxEvents: true,
   weekends: true,
+  showNonCurrentDates: true,
+  fixedWeekCount: false,
+  aspectRatio: 1.8,
   editable: true,
   droppable: true,
   events: calendarEvents.value,
@@ -254,11 +257,15 @@ const calendarOptions = computed(() => ({
   slotDuration: '00:30:00',
   allDaySlot: false,
   nowIndicator: true,
-  businessHours: {
-    daysOfWeek: [1, 2, 3, 4, 5], // Monday - Friday
-    startTime: '09:00',
-    endTime: '18:00',
-  },
+  businessHours: [
+    {
+      daysOfWeek: [1, 2, 3, 4, 5], // Monday - Friday
+      startTime: '09:00',
+      endTime: '18:00',
+    },
+  ],
+  selectConstraint: 'businessHours',
+  eventConstraint: 'businessHours',
   eventDisplay: 'block',
   eventBackgroundColor: 'transparent',
   eventBorderColor: 'transparent',
@@ -409,13 +416,15 @@ onMounted(() => {
 }
 
 :deep(.custom-calendar) {
-  --fc-border-color: #d6d3d1;
-  --fc-button-text-color: #0f172a;
-  --fc-button-bg-color: #f1f5f9;
-  --fc-button-border-color: #d6d3d1;
-  --fc-button-hover-bg-color: #e2e8f0;
+  --fc-border-color: #374151;
+  --fc-button-text-color: #f9fafb;
+  --fc-button-bg-color: #374151;
+  --fc-button-border-color: #374151;
+  --fc-button-hover-bg-color: #4b5563;
   --fc-button-active-bg-color: #3b82f6;
-  --fc-today-bg-color: rgba(59, 130, 246, 0.1);
+  --fc-today-bg-color: rgba(59, 130, 246, 0.2);
+  --fc-day-other-bg-color: #1f2937;
+  --fc-non-business-color: rgba(31, 41, 55, 0.8);
 }
 
 :deep(.fc-toolbar-title) {
@@ -459,15 +468,86 @@ onMounted(() => {
 }
 
 :deep(.fc-col-header-cell) {
-  background-color: #f1f5f9;
-  border-color: #d6d3d1;
+  background-color: #374151 !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+  font-weight: 600;
+}
+
+:deep(.fc-col-header-cell a) {
+  color: #f9fafb !important;
+  text-decoration: none;
+}
+
+:deep(.fc-daygrid-day) {
+  background-color: #111827 !important;
+  color: #f9fafb !important;
+  border-color: #374151 !important;
+}
+
+:deep(.fc-daygrid-day-number) {
+  color: #f9fafb !important;
+  font-weight: 500;
+  padding: 8px;
+}
+
+:deep(.fc-day-other .fc-daygrid-day-number) {
+  color: #6b7280 !important;
+}
+
+:deep(.fc-day-disabled) {
+  background-color: #1f2937 !important;
+  color: #4b5563 !important;
+}
+
+:deep(.fc-day-disabled .fc-daygrid-day-number) {
+  color: #4b5563 !important;
 }
 
 :deep(.fc-scrollgrid) {
-  border-color: #d6d3d1;
+  border-color: #374151 !important;
 }
 
 :deep(.fc-theme-standard td, .fc-theme-standard th) {
-  border-color: #d6d3d1;
+  border-color: #374151 !important;
+}
+
+/* Weekend days styling */
+:deep(.fc-day-sat, .fc-day-sun) {
+  background-color: #1f2937 !important;
+  opacity: 0.6;
+}
+
+:deep(.fc-day-sat .fc-daygrid-day-number, .fc-day-sun .fc-daygrid-day-number) {
+  color: #6b7280 !important;
+  font-style: italic;
+}
+
+/* Business hours vs non-business styling */
+:deep(.fc-non-business) {
+  background-color: #1f2937 !important;
+  opacity: 0.7;
+}
+
+/* Past days styling */
+:deep(.fc-day-past:not(.fc-day-today)) {
+  opacity: 0.5;
+}
+
+:deep(.fc-day-past:not(.fc-day-today) .fc-daygrid-day-number) {
+  color: #4b5563 !important;
+}
+
+/* Today highlighting */
+:deep(.fc-day-today) {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  border-color: #3b82f6 !important;
+}
+
+:deep(.fc-day-today .fc-daygrid-day-number) {
+  color: #60a5fa !important;
+  font-weight: 700;
+  background-color: rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
 }
 </style>
