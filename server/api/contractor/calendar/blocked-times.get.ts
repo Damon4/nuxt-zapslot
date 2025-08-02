@@ -19,8 +19,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    console.log('Getting blocked times for contractor:', contractor.id)
-
     // Get all blocked time slots for this contractor
     const blockedTimes = await prisma.timeSlot.findMany({
       where: {
@@ -29,8 +27,6 @@ export default defineEventHandler(async (event) => {
       },
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
     })
-
-    console.log('Found blocked times:', blockedTimes.length)
 
     return {
       success: true,

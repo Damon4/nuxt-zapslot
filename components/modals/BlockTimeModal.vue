@@ -282,16 +282,57 @@ const blockTime = async () => {
   } catch (err: unknown) {
     console.error('Error blocking time:', err)
 
-    // Handle specific API errors
+    // Handle FetchError from ofetch
     if (err && typeof err === 'object' && 'data' in err) {
-      const errorData = err.data as { message?: string }
-      if (errorData?.message) {
-        generalError.value = errorData.message
+      const fetchError = err as {
+        status?: number
+        statusCode?: number
+        statusText?: string
+        message?: string
+        data?: {
+          message?: string
+          conflicts?: Array<{
+            startTime: string
+            endTime: string
+            reason?: string
+          }>
+        }
+      }
+
+      // Check if it's a 409 status code
+      if (fetchError.status === 409 || fetchError.statusCode === 409) {
+        const errorData = fetchError.data
+
+        if (errorData?.conflicts && errorData.conflicts.length > 0) {
+          const conflictTimes = errorData.conflicts
+            .map(
+              (conflict) =>
+                `${conflict.startTime}-${conflict.endTime}${conflict.reason ? ' (' + conflict.reason + ')' : ''}`
+            )
+            .join(', ')
+          generalError.value = `This time conflicts with existing blocked slots: ${conflictTimes}`
+        } else {
+          // Extract meaningful message from statusText or message
+          const statusText = fetchError.statusText || fetchError.message || ''
+          if (statusText.includes('conflicts with existing blocked time')) {
+            generalError.value = statusText
+          } else {
+            generalError.value =
+              'This time slot conflicts with existing bookings or blocked time'
+          }
+        }
+      } else if (fetchError.data?.message) {
+        generalError.value = fetchError.data.message
+      } else if (fetchError.statusText) {
+        generalError.value = fetchError.statusText
+      } else if (fetchError.message) {
+        generalError.value = fetchError.message
       } else {
-        generalError.value = 'Failed to block time slot'
+        generalError.value = 'Unable to block this time slot. Please try again.'
       }
     } else {
-      generalError.value = 'Failed to block time slot'
+      generalError.value =
+        'Network error. Please check your connection and try again.'
     }
   } finally {
     loading.value = false

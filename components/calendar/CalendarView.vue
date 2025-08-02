@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -156,6 +156,23 @@ interface BookingType {
   }
 }
 
+interface AvailabilityType {
+  id?: number
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  isAvailable: boolean
+}
+
+interface BlockedSlotType {
+  id: number
+  contractorId?: string | number
+  date: string // ISO format from API
+  startTime: string
+  endTime: string
+  reason?: string
+}
+
 // Components
 const QuickBookingModal = defineAsyncComponent(
   () => import('~/components/modals/QuickBookingModal.vue')
@@ -167,11 +184,15 @@ const RescheduleModal = defineAsyncComponent(
 // Props & Emits
 interface Props {
   bookings?: BookingType[]
+  availability?: AvailabilityType[]
+  blockedSlots?: BlockedSlotType[]
   loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   bookings: () => [],
+  availability: () => [],
+  blockedSlots: () => [],
   loading: false,
 })
 
@@ -228,71 +249,50 @@ const weeklyRevenue = computed(() => {
     .reduce((sum, b) => sum + (b.totalPrice || 0), 0)
 })
 
-// Calendar configuration
-const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  initialView: currentView.value,
-  headerToolbar: {
-    left: 'prev,next',
-    center: '',
-    right: '',
-  },
-  height: 'auto',
-  selectable: true,
-  selectMirror: true,
-  dayMaxEvents: true,
-  weekends: true,
-  showNonCurrentDates: true,
-  fixedWeekCount: false,
-  aspectRatio: 1.8,
-  editable: true,
-  droppable: true,
-  events: calendarEvents.value,
-  select: handleDateSelect,
-  eventClick: handleEventClick,
-  eventDrop: handleEventDrop,
-  eventResize: handleEventResize,
-  slotMinTime: '08:00:00',
-  slotMaxTime: '20:00:00',
-  slotDuration: '00:30:00',
-  allDaySlot: false,
-  nowIndicator: true,
-  businessHours: [
-    {
-      daysOfWeek: [1, 2, 3, 4, 5], // Monday - Friday
-      startTime: '09:00',
-      endTime: '18:00',
-    },
-  ],
-  selectConstraint: 'businessHours',
-  eventConstraint: 'businessHours',
-  eventDisplay: 'block',
-  eventBackgroundColor: 'transparent',
-  eventBorderColor: 'transparent',
-  eventClassNames: 'custom-calendar-event',
-}))
+// Computed business hours based on contractor availability
+const businessHours = computed(() => {
+  if (!props.availability || props.availability.length === 0) {
+    // Default business hours if no availability data
+    return [
+      {
+        daysOfWeek: [1, 2, 3, 4, 5], // Monday - Friday
+        startTime: '09:00',
+        endTime: '18:00',
+      },
+    ]
+  }
 
-const calendarEvents = computed(() => {
-  return props.bookings.map((booking) => ({
-    id: booking.id.toString(),
-    title: booking.service?.title || 'Service',
-    start: booking.scheduledAt,
-    end: booking.duration
-      ? new Date(
-          new Date(booking.scheduledAt).getTime() + booking.duration * 60000
-        ).toISOString()
-      : booking.scheduledAt,
-    backgroundColor: getBookingColor(booking.status),
-    borderColor: getBookingColor(booking.status),
-    textColor: '#ffffff',
-    extendedProps: {
-      booking,
-      status: booking.status,
-      clientName: booking.client?.name,
-      service: booking.service?.title,
-      price: booking.totalPrice,
-    },
-  }))
+  // Convert availability data to business hours format
+  const availableDays = props.availability.filter((a) => a.isAvailable)
+
+  if (availableDays.length === 0) {
+    return [] // No available days
+  }
+
+  // Group by similar time slots
+  const timeGroups: { [key: string]: number[] } = {}
+
+  availableDays.forEach((day) => {
+    const timeKey = `${day.startTime}-${day.endTime}`
+    if (!timeGroups[timeKey]) {
+      timeGroups[timeKey] = []
+    }
+    timeGroups[timeKey].push(day.dayOfWeek)
+  })
+
+  // Convert to business hours format
+  const businessHoursResult = Object.entries(timeGroups).map(
+    ([timeKey, days]) => {
+      const [startTime, endTime] = timeKey.split('-')
+      return {
+        daysOfWeek: days.sort((a, b) => a - b),
+        startTime,
+        endTime,
+      }
+    }
+  )
+
+  return businessHoursResult
 })
 
 // Methods
@@ -311,6 +311,13 @@ const changeView = (view: string) => {
   const calendarApi = calendar.value?.getApi()
   if (calendarApi) {
     calendarApi.changeView(view)
+
+    // Update events to reflect view-dependent display style
+    nextTick(() => {
+      calendarApi.removeAllEvents()
+      const events = calendarEvents.value
+      calendarApi.setOption('events', events)
+    })
   }
   emit('viewChange', view)
 }
@@ -343,15 +350,109 @@ const handleDateSelect = (selectInfo: {
   selectInfo.view.calendar.unselect()
 }
 
-const handleEventClick = (clickInfo: {
-  event: { extendedProps: { booking: BookingType } }
-}) => {
-  const booking = clickInfo.event.extendedProps.booking
-  selectedBooking.value = booking
-  emit('eventClick', booking)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handleEventClick = (clickInfo: any) => {
+  if (clickInfo.event.extendedProps?.booking) {
+    const booking = clickInfo.event.extendedProps.booking
+    selectedBooking.value = booking
+    emit('eventClick', booking)
+  }
 }
 
-const handleEventDrop = (dropInfo: {
+// Calendar configuration function
+const getCalendarOptions = () => ({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  initialView: 'dayGridMonth',
+  firstDay: 1, // Start week on Monday
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+  },
+  businessHours: businessHours.value,
+  selectConstraint: 'businessHours',
+  eventConstraint: 'businessHours',
+  selectable: true,
+  selectMirror: true,
+  dayMaxEvents: true,
+  weekends: true,
+  height: 'auto',
+  contentHeight: 600,
+  select: handleDateSelect,
+  eventClick: handleEventClick,
+  events: [], // Initialize empty, will be updated by watcher
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  dayCellDidMount: (info: any) => {
+    // Style non-working days
+    const dayOfWeek = info.date.getDay()
+    const dayOfWeekISO = dayOfWeek === 0 ? 7 : dayOfWeek // Convert Sunday from 0 to 7
+
+    const isWorkingDay = props.availability?.some(
+      (a) => a.dayOfWeek === dayOfWeekISO && a.isAvailable
+    )
+
+    if (!isWorkingDay && props.availability && props.availability.length > 0) {
+      info.el.style.backgroundColor = '#f3f4f6'
+      info.el.style.opacity = '0.6'
+    }
+  },
+})
+
+// Calendar options reactive property
+const calendarOptions = ref(getCalendarOptions())
+
+const calendarEvents = computed(() => {
+  const bookingEvents = props.bookings.map((booking) => ({
+    id: booking.id.toString(),
+    title: booking.service?.title || 'Service',
+    start: booking.scheduledAt,
+    end: booking.duration
+      ? new Date(
+          new Date(booking.scheduledAt).getTime() + booking.duration * 60000
+        ).toISOString()
+      : booking.scheduledAt,
+    backgroundColor: getBookingColor(booking.status),
+    borderColor: getBookingColor(booking.status),
+    textColor: '#ffffff',
+    extendedProps: {
+      booking,
+      status: booking.status,
+      clientName: booking.client?.name,
+      service: booking.service?.title,
+      price: booking.totalPrice,
+      type: 'booking',
+    },
+  }))
+
+  // Add blocked slots as background events
+  const blockedEvents = props.blockedSlots.map((slot) => {
+    // Convert ISO date string to YYYY-MM-DD format
+    const dateStr = new Date(slot.date).toISOString().split('T')[0]
+
+    // In month view, show as regular events; in time views, show as background
+    const isMonthView = currentView.value === 'dayGridMonth'
+
+    return {
+      id: `blocked-${slot.id}`,
+      title: slot.reason || 'Blocked Time',
+      start: `${dateStr}T${slot.startTime}:00`,
+      end: `${dateStr}T${slot.endTime}:00`,
+      display: isMonthView ? 'block' : 'background',
+      backgroundColor: isMonthView ? '#dc2626' : '#fee2e2', // Solid red for month, light red for time views
+      borderColor: isMonthView ? '#dc2626' : '#fca5a5',
+      textColor: '#ffffff',
+      extendedProps: {
+        blockedSlot: slot,
+        type: 'blocked',
+        reason: slot.reason,
+      },
+    }
+  })
+
+  return [...bookingEvents, ...blockedEvents]
+})
+
+const _handleEventDrop = (dropInfo: {
   event: { extendedProps: { booking: BookingType }; start: Date; end: Date }
   revert: () => void
 }) => {
@@ -368,7 +469,7 @@ const handleEventDrop = (dropInfo: {
   dropInfo.revert()
 }
 
-const handleEventResize = (_resizeInfo: {
+const _handleEventResize = (_resizeInfo: {
   event: { extendedProps: { booking: BookingType }; end: Date }
 }) => {
   // Handle duration update
@@ -388,24 +489,44 @@ const closeReschedule = () => {
   rescheduleTime.value = null
 }
 
-const handleBookingCreated = (_booking: BookingType) => {
+const handleBookingCreated = (_booking: unknown) => {
   success('Booking Created', 'New booking has been added to your calendar')
   closeQuickBooking()
   // Refresh calendar events
   fetchContractorBookings()
 }
 
-const handleBookingRescheduled = (_booking: BookingType) => {
+const handleBookingRescheduled = (_booking: unknown) => {
   success('Booking Rescheduled', 'Booking has been successfully rescheduled')
   closeReschedule()
   // Refresh calendar events
   fetchContractorBookings()
 }
 
+// Watch for data changes and update calendar
+watch(
+  [() => props.bookings, () => props.availability, () => props.blockedSlots],
+  () => {
+    nextTick(() => {
+      const calendarApi = calendar.value?.getApi()
+      if (calendarApi) {
+        // Update business hours
+        calendarApi.setOption('businessHours', businessHours.value)
+
+        // Update events - use setOption instead of addEventSource
+        calendarApi.removeAllEvents()
+        const events = calendarEvents.value
+        calendarApi.setOption('events', events)
+      }
+    })
+  },
+  { deep: true, immediate: true }
+)
+
 // Lifecycle
 onMounted(() => {
   nextTick(() => {
-    // Calendar will be rendered
+    // Calendar initialization complete
   })
 })
 </script>

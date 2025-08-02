@@ -34,6 +34,8 @@
     <div class="mb-8">
       <CalendarView
         :bookings="bookings"
+        :availability="availability"
+        :blocked-slots="blockedSlots"
         :loading="loading"
         @date-select="handleDateSelect"
         @event-click="handleEventClick"
@@ -130,7 +132,8 @@ interface AvailabilityType {
 
 interface BlockedSlotType {
   id: number
-  date: string
+  contractorId?: number
+  date: string // ISO format from API
   startTime: string
   endTime: string
   reason?: string
@@ -220,13 +223,24 @@ const fetchBlockedSlots = async () => {
     blockedSlots.value = data.timeSlots
   } catch (err) {
     console.error('Failed to fetch blocked slots:', err)
-    // For now, just set empty array if API doesn't exist
+    // Show user-friendly error notification if it's not just missing API
+    if (
+      err &&
+      typeof err === 'object' &&
+      'statusCode' in err &&
+      err.statusCode !== 404
+    ) {
+      error(
+        'Loading Error',
+        'Unable to load blocked time slots. Please refresh the page.'
+      )
+    }
+    // Set empty array as fallback
     blockedSlots.value = []
   }
 }
 
-const handleDateSelect = (start: Date, end: Date) => {
-  console.log('Date selected:', start, end)
+const handleDateSelect = (_start: Date, _end: Date) => {
   // Handle date selection (could open quick booking modal)
 }
 
@@ -236,17 +250,15 @@ const handleEventClick = (booking: BookingType) => {
 }
 
 const handleEventDrop = (
-  booking: BookingType,
-  newStart: Date,
-  newEnd: Date
+  _booking: BookingType,
+  _newStart: Date,
+  _newEnd: Date
 ) => {
-  console.log('Event dropped:', booking, newStart, newEnd)
   // Handle booking reschedule
 }
 
 const handleViewChange = (view: string) => {
   currentView.value = view
-  console.log('View changed to:', view)
 }
 
 const handleTimeBlocked = (_data: unknown) => {
@@ -267,7 +279,11 @@ const handleAvailabilitySaved = (data: unknown) => {
 onMounted(async () => {
   loading.value = true
   try {
-    await Promise.all([fetchContractorBookings(), fetchAvailability()])
+    await Promise.all([
+      fetchContractorBookings(),
+      fetchAvailability(),
+      fetchBlockedSlots(), // Add blocked slots fetching
+    ])
   } catch {
     error('Loading Failed', 'Failed to load calendar data')
   } finally {

@@ -23,12 +23,8 @@ export default defineEventHandler(async (event) => {
     // Read request body first (critical pattern)
     const body = await readBody(event)
 
-    console.log('Block time request body:', body)
-
     // Then check authorization
     const session = await requireAuth(event)
-
-    console.log('Block time user:', session.user.id)
 
     const contractor = await prisma.contractor.findUnique({
       where: { userId: session.user.id },
@@ -42,12 +38,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    console.log('Block time contractor:', contractor.id)
-
     // Validate the time slot data
     const { date, startTime, endTime, reason } = blockTimeSchema.parse(body)
-
-    console.log('Validated data:', { date, startTime, endTime, reason })
 
     // Validate that end time is after start time
     const start = new Date(`2000-01-01T${startTime}:00`)
@@ -61,10 +53,11 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if there's already a conflicting time slot
-    const existingSlot = await prisma.timeSlot.findFirst({
+    const existingSlots = await prisma.timeSlot.findMany({
       where: {
         contractorId: contractor.id,
         date: new Date(date),
+        isBlocked: true,
         OR: [
           {
             AND: [
@@ -88,10 +81,19 @@ export default defineEventHandler(async (event) => {
       },
     })
 
-    if (existingSlot) {
+    if (existingSlots.length > 0) {
+      console.error('Conflicting time slots found:', existingSlots)
       throw createError({
-        statusCode: 400,
-        statusMessage: 'Time slot conflicts with existing blocked time',
+        statusCode: 409, // Conflict status code
+        statusMessage: `Time slot conflicts with existing blocked time: ${existingSlots.map((s) => `${s.startTime}-${s.endTime} (${s.reason || 'No reason'})`).join(', ')}`,
+        data: {
+          conflicts: existingSlots.map((slot) => ({
+            id: slot.id,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            reason: slot.reason,
+          })),
+        },
       })
     }
 
@@ -119,6 +121,11 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Invalid time slot data',
         data: error.errors,
       })
+    }
+
+    // If it's already a createError with status code, re-throw it
+    if (error && typeof error === 'object' && 'statusCode' in error) {
+      throw error
     }
 
     console.error('Error blocking time slot:', error)
