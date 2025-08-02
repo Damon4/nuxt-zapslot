@@ -31,31 +31,56 @@
     </div>
 
     <!-- Calendar Component -->
-    <CalendarView
-      :bookings="bookings"
-      :loading="loading"
-      @date-select="handleDateSelect"
-      @event-click="handleEventClick"
-      @event-drop="handleEventDrop"
-      @view-change="handleViewChange"
-    />
+    <div class="mb-8">
+      <CalendarView
+        :bookings="bookings"
+        :loading="loading"
+        @date-select="handleDateSelect"
+        @event-click="handleEventClick"
+        @event-drop="handleEventDrop"
+        @view-change="handleViewChange"
+      />
+    </div>
+
+    <!-- Time Slot Manager -->
+    <div class="mb-8">
+      <TimeSlotManager
+        :availability="availability"
+        :blocked-slots="blockedSlots"
+        @edit-availability="showAvailabilityModal = true"
+        @block-time="showBlockTimeModal = true"
+        @refresh-data="refreshData"
+      />
+    </div>
 
     <!-- Booking Details Modal -->
-    <BookingDetailsModal
-      v-if="showBookingDetails"
+    <!-- <BookingDetailsModal
+      v-if="showBookingDetails && selectedBooking"
       :booking="selectedBooking"
       @close="closeBookingDetails"
       @update-status="handleStatusUpdate"
       @reschedule="handleReschedule"
-    />
+    /> -->
 
-    <!-- Availability Settings Modal -->
-    <AvailabilityModal
-      v-if="showAvailabilityModal"
-      :availability="availability"
-      @close="closeAvailabilityModal"
-      @saved="handleAvailabilitySaved"
-    />
+    <!-- Modals (Client-only to avoid SSR issues) -->
+    <ClientOnly>
+      <!-- Availability Settings Modal -->
+      <AvailabilityEditorModal
+        :is-open="showAvailabilityModal"
+        :availability="availability"
+        @close="showAvailabilityModal = false"
+        @saved="handleAvailabilitySaved"
+      />
+
+      <!-- Block Time Modal -->
+      <BlockTimeModal
+        :is-open="showBlockTimeModal"
+        :selected-date="selectedDate"
+        :selected-time="selectedTime"
+        @close="showBlockTimeModal = false"
+        @blocked="handleTimeBlocked"
+      />
+    </ClientOnly>
 
     <!-- Loading Overlay -->
     <div
@@ -103,15 +128,26 @@ interface AvailabilityType {
   isAvailable: boolean
 }
 
+interface BlockedSlotType {
+  id: number
+  date: string
+  startTime: string
+  endTime: string
+  reason?: string
+}
+
 // Components
 const CalendarView = defineAsyncComponent(
   () => import('~/components/calendar/CalendarView.vue')
 )
-const BookingDetailsModal = defineAsyncComponent(
-  () => import('~/components/modals/BookingDetailsModal.vue')
+const TimeSlotManager = defineAsyncComponent(
+  () => import('~/components/calendar/TimeSlotManager.vue')
 )
-const AvailabilityModal = defineAsyncComponent(
-  () => import('~/components/modals/AvailabilityModal.vue')
+const AvailabilityEditorModal = defineAsyncComponent(
+  () => import('~/components/modals/AvailabilityEditorModal.vue')
+)
+const BlockTimeModal = defineAsyncComponent(
+  () => import('~/components/modals/BlockTimeModal.vue')
 )
 
 // Define page meta
@@ -133,22 +169,30 @@ useHead({
 })
 
 // Composables
-const { bookings, fetchContractorBookings, updateBookingStatus } = useBookings()
+const { bookings, fetchContractorBookings } = useBookings()
 const { success, error } = useNotifications()
 
 // Reactive state
 const loading = ref(false)
 const selectedBooking = ref<BookingType | null>(null)
 const availability = ref<AvailabilityType[]>([])
+const blockedSlots = ref<BlockedSlotType[]>([])
 const showBookingDetails = ref(false)
 const showAvailabilityModal = ref(false)
+const showBlockTimeModal = ref(false)
+const selectedDate = ref('')
+const selectedTime = ref('')
 const currentView = ref('dayGridMonth')
 
 // Methods
 const refreshData = async () => {
   loading.value = true
   try {
-    await Promise.all([fetchContractorBookings(), fetchAvailability()])
+    await Promise.all([
+      fetchContractorBookings(),
+      fetchAvailability(),
+      fetchBlockedSlots(),
+    ])
     success('Data Refreshed', 'Calendar data has been updated')
   } catch {
     error('Refresh Failed', 'Failed to refresh calendar data')
@@ -165,6 +209,19 @@ const fetchAvailability = async () => {
     availability.value = data.availability
   } catch (err) {
     console.error('Failed to fetch availability:', err)
+  }
+}
+
+const fetchBlockedSlots = async () => {
+  try {
+    const data = await $fetch<{ timeSlots: BlockedSlotType[] }>(
+      '/api/contractor/calendar/blocked-slots'
+    )
+    blockedSlots.value = data.timeSlots
+  } catch (err) {
+    console.error('Failed to fetch blocked slots:', err)
+    // For now, just set empty array if API doesn't exist
+    blockedSlots.value = []
   }
 }
 
@@ -192,42 +249,18 @@ const handleViewChange = (view: string) => {
   console.log('View changed to:', view)
 }
 
-const closeBookingDetails = () => {
-  showBookingDetails.value = false
-  selectedBooking.value = null
+const handleTimeBlocked = (_data: unknown) => {
+  // Refresh blocked slots
+  fetchBlockedSlots()
+  success('Time Blocked', 'The time slot has been blocked successfully.')
 }
 
-const closeAvailabilityModal = () => {
-  showAvailabilityModal.value = false
-}
-
-const handleStatusUpdate = async (
-  bookingId: number,
-  status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
-) => {
-  try {
-    await updateBookingStatus(bookingId, status)
-    success(
-      'Status Updated',
-      `Booking status updated to ${status.toLowerCase()}`
-    )
-    closeBookingDetails()
-    await fetchContractorBookings()
-  } catch {
-    error('Update Failed', 'Failed to update booking status')
-  }
-}
-
-const handleReschedule = (booking: BookingType) => {
-  // Handle reschedule logic
-  console.log('Reschedule booking:', booking)
-  closeBookingDetails()
-}
-
-const handleAvailabilitySaved = (newAvailability: AvailabilityType[]) => {
-  availability.value = newAvailability
-  success('Availability Saved', 'Your availability settings have been updated')
-  closeAvailabilityModal()
+const handleAvailabilitySaved = (data: unknown) => {
+  availability.value = data as AvailabilityType[]
+  success(
+    'Availability Updated',
+    'Your availability has been saved successfully.'
+  )
 }
 
 // Lifecycle
