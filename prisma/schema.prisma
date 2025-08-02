@@ -89,8 +89,9 @@ model Contractor {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // Application status (keeping as Int for backward compatibility, will migrate to enum later)
-  status      Int      @default(0) // 0=PENDING, 1=APPROVED, 2=REJECTED, 3=SUSPENDED
+  // Application status (simplified - contractors are auto-approved)
+  // 1=APPROVED (default), 3=SUSPENDED (admin action)
+  status      Int      @default(1)
   
   // Required profile information
   description String   // Service description
@@ -113,14 +114,10 @@ model Contractor {
   // Location and service area
   serviceArea String?  // Areas where services are provided
   
-  // Admin notes and moderation
-  adminNotes     String? // Internal admin notes
-  rejectionReason String? // Reason for rejection
-  
   // Timestamps (keeping existing structure)
   createdAt   DateTime @default(now())
-  appliedAt   DateTime? // Will be populated from createdAt
-  approvedAt  DateTime?
+  appliedAt   DateTime @default(now()) // Application time
+  approvedAt  DateTime @default(now()) // Auto-approved time
   updatedAt   DateTime @updatedAt
   
   // Relations

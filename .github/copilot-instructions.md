@@ -232,10 +232,9 @@ const emit = defineEmits<{
 ### Access Control Levels
 
 1. **Guest Users**: Public contractor directory
-2. **Authenticated Users**: Apply for contractor status, book services
-3. **Pending Contractors**: View application status, edit applications
-4. **Approved Contractors**: Full contractor dashboard, service management
-5. **Administrators**: Full system access, moderation capabilities
+2. **Authenticated Users**: Apply for contractor status (auto-approved), book services
+3. **Active Contractors**: Full contractor dashboard, service management
+4. **Administrators**: Full system access, contractor management capabilities
 
 ## 🧪 Testing Requirements
 
@@ -262,8 +261,14 @@ Use Playwright MCP tools for:
 ### Contractor Status Flow
 
 ```
-PENDING -> APPROVED/REJECTED -> SUSPENDED (optional)
+AUTO-APPROVED (1) -> SUSPENDED (3) -> ACTIVE (1)
 ```
+
+**Simplified System:**
+- All contractor applications are automatically approved
+- Status 1 = Active (default for new applications)
+- Status 3 = Suspended (admin action only)
+- No pending/rejected states - eliminates moderation queue
 
 ### Service Categories (20 categories)
 
@@ -475,21 +480,21 @@ This project emphasizes **testing-first development**, **real browser testing wi
 
 **Page: `/admin/contractors`**
 
-- **Purpose**: Complete contractor application management interface
+- **Purpose**: Contractor management interface (not moderation)
 - **Features**:
-  - Real-time statistics dashboard (Total, Pending, Approved, Rejected)
+  - Real-time statistics dashboard (Total, Active, Suspended, Services)
   - Advanced filtering by status and pagination
-  - Individual application review with detailed information
-  - One-click approve/reject functionality
-  - Status change dropdown for approved/rejected applications
+  - Individual contractor profile viewing
+  - Status management (activate/suspend contractors)
+  - Contractor management tools
   - Responsive design with DaisyUI components
 
 **Key Components**:
 
 - Statistics cards with live data
 - Filter controls for status and page size
-- Application cards with user information and service details
-- Action buttons with loading states
+- Contractor cards with user information and service details
+- Status management buttons with loading states
 - Empty state handling
 - Pagination controls
 

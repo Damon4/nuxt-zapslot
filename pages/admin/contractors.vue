@@ -1,9 +1,9 @@
 <template>
   <div class="container mx-auto py-8">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold">Contractor Applications Management</h1>
+      <h1 class="text-3xl font-bold">Contractor Management</h1>
       <p class="text-base-content/70 mt-2">
-        Review and moderate contractor applications
+        Manage contractors and their status
       </p>
     </div>
 
@@ -21,10 +21,9 @@
               class="select select-bordered w-full max-w-xs"
               @change="() => loadContractors()"
             >
-              <option value="">All Applications</option>
-              <option value="0">Pending Review</option>
-              <option value="1">Approved</option>
-              <option value="-1">Rejected</option>
+              <option value="">All Contractors</option>
+              <option value="1">Active</option>
+              <option value="3">Suspended</option>
             </select>
           </div>
 
@@ -49,20 +48,20 @@
     <!-- Statistics -->
     <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
       <div class="stat bg-base-100 rounded-lg shadow">
-        <div class="stat-title">Total Applications</div>
+        <div class="stat-title">Total Contractors</div>
         <div class="stat-value text-primary">{{ stats.total }}</div>
       </div>
       <div class="stat bg-base-100 rounded-lg shadow">
-        <div class="stat-title">Pending Review</div>
-        <div class="stat-value text-warning">{{ stats.pending }}</div>
+        <div class="stat-title">Active</div>
+        <div class="stat-value text-success">{{ stats.active }}</div>
       </div>
       <div class="stat bg-base-100 rounded-lg shadow">
-        <div class="stat-title">Approved</div>
-        <div class="stat-value text-success">{{ stats.approved }}</div>
+        <div class="stat-title">Suspended</div>
+        <div class="stat-value text-warning">{{ stats.suspended }}</div>
       </div>
       <div class="stat bg-base-100 rounded-lg shadow">
-        <div class="stat-title">Rejected</div>
-        <div class="stat-value text-error">{{ stats.rejected }}</div>
+        <div class="stat-title">Total Services</div>
+        <div class="stat-value text-info">{{ stats.services || 0 }}</div>
       </div>
     </div>
 
@@ -160,56 +159,27 @@
             <p class="text-sm">{{ contractor.portfolio }}</p>
           </div>
 
-          <!-- Action buttons for pending applications -->
-          <div
-            v-if="contractor.status === 0"
-            class="card-actions justify-end gap-2"
-          >
-            <button
-              class="btn btn-error btn-sm"
-              :disabled="isUpdating"
-              @click="updateContractorStatus(contractor.id, -1)"
-            >
-              <Icon name="tabler:x" size="16" />
-              Reject
-            </button>
-            <button
-              class="btn btn-success btn-sm"
-              :disabled="isUpdating"
-              @click="updateContractorStatus(contractor.id, 1)"
-            >
-              <Icon name="tabler:check" size="16" />
-              Approve
-            </button>
-          </div>
-
-          <!-- Status change for approved/rejected -->
-          <div v-else class="card-actions justify-end">
+          <!-- Action buttons for contractor management -->
+          <div class="card-actions justify-end">
             <div class="dropdown dropdown-top dropdown-end">
               <div tabindex="0" role="button" class="btn btn-outline btn-sm">
-                <Icon name="tabler:dots-vertical" size="16" />
-                Change Status
+                <Icon name="tabler:settings" size="16" />
+                Manage Status
               </div>
               <ul
                 tabindex="0"
                 class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
               >
-                <li v-if="contractor.status !== 0">
-                  <a @click="updateContractorStatus(contractor.id, 0)">
-                    <Icon name="tabler:clock" size="16" />
-                    Set to Pending
-                  </a>
-                </li>
                 <li v-if="contractor.status !== 1">
                   <a @click="updateContractorStatus(contractor.id, 1)">
                     <Icon name="tabler:check" size="16" />
-                    Approve
+                    Activate
                   </a>
                 </li>
-                <li v-if="contractor.status !== -1">
-                  <a @click="updateContractorStatus(contractor.id, -1)">
-                    <Icon name="tabler:x" size="16" />
-                    Reject
+                <li v-if="contractor.status !== 3">
+                  <a @click="updateContractorStatus(contractor.id, 3)">
+                    <Icon name="tabler:ban" size="16" />
+                    Suspend
                   </a>
                 </li>
               </ul>
@@ -323,9 +293,9 @@ const filters = ref({
 
 const stats = ref({
   total: 0,
-  pending: 0,
-  approved: 0,
-  rejected: 0,
+  active: 0,
+  suspended: 0,
+  services: 0,
 })
 
 // Methods
@@ -358,18 +328,17 @@ const loadContractors = async (page = 1) => {
 
 const loadStats = async () => {
   try {
-    const [totalRes, pendingRes, approvedRes, rejectedRes] = await Promise.all([
+    const [totalRes, activeRes, suspendedRes] = await Promise.all([
       $fetch<ContractorsResponse>('/api/admin/contractors?limit=1'),
-      $fetch<ContractorsResponse>('/api/admin/contractors?status=0&limit=1'),
       $fetch<ContractorsResponse>('/api/admin/contractors?status=1&limit=1'),
-      $fetch<ContractorsResponse>('/api/admin/contractors?status=-1&limit=1'),
+      $fetch<ContractorsResponse>('/api/admin/contractors?status=3&limit=1'),
     ])
 
     stats.value = {
       total: totalRes.data.pagination.total,
-      pending: pendingRes.data.pagination.total,
-      approved: approvedRes.data.pagination.total,
-      rejected: rejectedRes.data.pagination.total,
+      active: activeRes.data.pagination.total,
+      suspended: suspendedRes.data.pagination.total,
+      services: 0, // TODO: Add services count if needed
     }
   } catch (err) {
     console.error('Error loading stats:', err)
@@ -389,8 +358,8 @@ const updateContractorStatus = async (contractorId: number, status: number) => {
     await loadContractors(pagination.value?.page || 1)
 
     const statusText =
-      status === 1 ? 'approved' : status === -1 ? 'rejected' : 'set to pending'
-    success(`Contractor application ${statusText} successfully`)
+      status === 1 ? 'activated' : status === 3 ? 'suspended' : 'updated'
+    success(`Contractor ${statusText} successfully`)
   } catch (err: unknown) {
     console.error('Error updating contractor status:', err)
     error('Failed to update contractor status')
@@ -436,12 +405,10 @@ const onImageError = (event: Event, contractor: ContractorWithUser) => {
 // Utility functions
 const getStatusText = (status: number): string => {
   switch (status) {
-    case 0:
-      return 'Pending Review'
     case 1:
-      return 'Approved'
-    case -1:
-      return 'Rejected'
+      return 'Active'
+    case 3:
+      return 'Suspended'
     default:
       return 'Unknown'
   }
@@ -449,12 +416,10 @@ const getStatusText = (status: number): string => {
 
 const getStatusBadgeClass = (status: number): string => {
   switch (status) {
-    case 0:
-      return 'badge-warning'
     case 1:
       return 'badge-success'
-    case -1:
-      return 'badge-error'
+    case 3:
+      return 'badge-warning'
     default:
       return 'badge-ghost'
   }

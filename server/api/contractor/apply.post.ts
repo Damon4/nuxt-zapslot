@@ -35,6 +35,8 @@ export default defineEventHandler(async (event) => {
 
     const validatedData = contractorApplicationSchema.parse(body)
 
+    const now = new Date()
+
     const contractor = await prisma.contractor.create({
       data: {
         userId: user.id,
@@ -43,7 +45,9 @@ export default defineEventHandler(async (event) => {
         experience: validatedData.experience,
         portfolio: validatedData.portfolio,
         price: validatedData.price,
-        status: 0, // pending
+        status: 1, // automatically approved
+        appliedAt: now,
+        approvedAt: now, // approved immediately
       },
     })
 
