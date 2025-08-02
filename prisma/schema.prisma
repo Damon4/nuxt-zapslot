@@ -14,12 +14,12 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String      @id
   name          String
   email         String
   emailVerified Boolean
   image         String?
-  isAdmin       Boolean   @default(false)
+  isAdmin       Boolean     @default(false)
   createdAt     DateTime
   updatedAt     DateTime
   sessions      Session[]
@@ -77,51 +77,51 @@ model Verification {
 }
 
 model DataMigration {
-  id         String   @id
-  name       String
+  id          String   @id
+  name        String
   executed_at DateTime
 
   @@map("_data_migrations")
 }
 
 model Contractor {
-  id          Int      @id @default(autoincrement())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id     Int    @id @default(autoincrement())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Application status (simplified - contractors are auto-approved)
   // 1=APPROVED (default), 3=SUSPENDED (admin action)
-  status      Int      @default(1)
-  
+  status Int @default(1)
+
   // Required profile information
-  description String   // Service description
-  categories  String   // JSON array of selected categories
-  
+  description String // Service description
+  categories  String // JSON array of selected categories
+
   // Optional profile information
-  experience  String?  // Years of experience description
-  portfolio   String?  // Portfolio description or links
-  price       String?  // Existing price field (will be migrated to priceRange)
-  
+  experience String? // Years of experience description
+  portfolio  String? // Portfolio description or links
+  price      String? // Existing price field (will be migrated to priceRange)
+
   // New fields (all optional for safe migration)
-  priceRange  String?  // Price range or "negotiable"
+  priceRange   String? // Price range or "negotiable"
   availability String? // WEEKDAYS, WEEKENDS, MORNINGS, EVENINGS, FLEXIBLE
-  
+
   // Contact and business info
   phone       String?
   website     String?
-  socialLinks String?  // JSON object with social media links
-  
+  socialLinks String? // JSON object with social media links
+
   // Location and service area
-  serviceArea String?  // Areas where services are provided
-  
+  serviceArea String? // Areas where services are provided
+
   // Timestamps (keeping existing structure)
-  createdAt   DateTime @default(now())
-  appliedAt   DateTime @default(now()) // Application time
-  approvedAt  DateTime @default(now()) // Auto-approved time
-  updatedAt   DateTime @updatedAt
-  
+  createdAt  DateTime @default(now())
+  appliedAt  DateTime @default(now()) // Application time
+  approvedAt DateTime @default(now()) // Auto-approved time
+  updatedAt  DateTime @updatedAt
+
   // Relations
-  services    Service[]
+  services Service[]
 
   @@map("contractor")
 }
@@ -139,47 +139,47 @@ model ContractorCategory {
   name        String  @unique
   description String?
   isActive    Boolean @default(true)
-  
+
   @@map("contractor_category")
 }
 
 model Service {
-  id            Int      @id @default(autoincrement())
-  contractorId  Int
-  contractor    Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  id           Int        @id @default(autoincrement())
+  contractorId Int
+  contractor   Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
 
-  title         String   // service title
-  description   String   // detailed description
-  category      String   // category (from contractor-plan.md)
-  price         Decimal? // price (can be null for "negotiable")
-  priceType     String   @default("FIXED") // FIXED, HOURLY, NEGOTIABLE
-  duration      Int?     // duration in minutes (optional)
-  availability  String   @default("FLEXIBLE") // WEEKDAYS, WEEKENDS, MORNINGS, EVENINGS, FLEXIBLE
+  title        String // service title
+  description  String // detailed description
+  category     String // category (from contractor-plan.md)
+  price        Decimal? // price (can be null for "negotiable")
+  priceType    String   @default("FIXED") // FIXED, HOURLY, NEGOTIABLE
+  duration     Int? // duration in minutes (optional)
+  availability String   @default("FLEXIBLE") // WEEKDAYS, WEEKENDS, MORNINGS, EVENINGS, FLEXIBLE
 
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  bookings      Booking[]
+  bookings Booking[]
 
   @@map("service")
 }
 
 model Booking {
-  id          Int      @id @default(autoincrement())
-  serviceId   Int
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  clientId    String
-  client      User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  clientId  String
+  client    User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
   scheduledAt DateTime // when the service is scheduled
-  duration    Int?     // actual duration (may differ from Service.duration)
+  duration    Int? // actual duration (may differ from Service.duration)
   totalPrice  Decimal? // final price (can be negotiable)
-  notes       String?  // additional notes from the client
+  notes       String? // additional notes from the client
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("booking")
 }
