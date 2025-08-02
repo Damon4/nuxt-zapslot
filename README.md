@@ -11,19 +11,36 @@ A modern, full-stack Nuxt 3 application for appointment booking with enterprise-
 
 ## ✨ Features
 
-- 🔐 **Secure Authentication**: GitHub OAuth integration with Better Auth
-- 👤 **User Profile Management**: Complete profile editing with real-time validation
-- 📊 **User Dashboard**: Comprehensive dashboard with statistics and activity overview
-- 🎯 **Appointment Booking**: Easy-to-use booking system for services
-- 🎨 **Modern UI/UX**: Tailwind CSS v4 with DaisyUI components and dark/light themes
-- 🔒 **Type Safety**: Full TypeScript support across client and server
-- 💾 **PostgreSQL Database**: Robust data persistence with Prisma ORM
-- 🌙 **Theme System**: Automatic dark/light mode with user preference saving
-- 🛡️ **SSR Security**: Server-side authentication with protected routes
-- 📱 **Responsive Design**: Mobile-first design that works on all devices
-- 🚀 **Performance**: Optimized for speed with Nuxt 3's latest features
-- ⚡ **Real-time Updates**: Instant UI feedback and notifications
-- 🔧 **Developer Tools**: ESLint, Prettier, Husky for code quality
+### 🔐 Authentication & Security
+- **Secure Authentication**: GitHub OAuth integration with Better Auth
+- **Server-Side Protection**: SSR authentication with protected routes
+- **Session Management**: HTTP-only cookies with automatic refresh
+
+### � User Management
+- **User Profile Management**: Complete profile editing with real-time validation
+- **User Dashboard**: Comprehensive dashboard with statistics and activity overview
+- **Role-Based Access**: Contractor and client role management
+
+### 📅 Advanced Booking System
+- **Smart Slot Generation**: Duration-aware availability calculation
+- **Real-time Validation**: Proactive date/time validation preventing invalid bookings
+- **Conflict Detection**: Automatic prevention of overlapping appointments
+- **Service Management**: Full CRUD operations for contractor services
+- **Booking Calendar**: Visual calendar integration with availability management
+- **Flexible Scheduling**: Support for various service durations and availability patterns
+
+### 🎨 Modern UI/UX
+- **Responsive Design**: Mobile-first design that works on all devices
+- **Theme System**: Automatic dark/light mode with user preference saving
+- **Real-time Feedback**: Instant validation and loading states
+- **Accessibility**: WCAG compliant with keyboard navigation support
+
+### 🔧 Technical Excellence
+- **Type Safety**: Full TypeScript support across client and server
+- **PostgreSQL Database**: Robust data persistence with Prisma ORM
+- **Performance**: Optimized for speed with Nuxt 3's latest features
+- **Developer Tools**: ESLint, Prettier, Husky for code quality
+- **Testing**: Comprehensive Playwright MCP testing coverage
 
 ## 🏗️ Tech Stack
 
@@ -33,7 +50,57 @@ A modern, full-stack Nuxt 3 application for appointment booking with enterprise-
 - **Database**: PostgreSQL with Prisma ORM
 - **Icons**: Tabler Icons via Nuxt Icon
 - **State Management**: Pinia
+- **Date Handling**: date-fns for robust date/time operations
+- **Testing**: Playwright MCP for comprehensive E2E testing
 - **Code Quality**: ESLint, Prettier, Husky, Lint-staged
+
+## 📅 Booking System Architecture
+
+### Smart Slot Generation
+The booking system features an intelligent slot generation algorithm that:
+- **Duration-Aware**: Considers service duration when generating available time slots
+- **Conflict Detection**: Prevents overlapping bookings and respects blocked time slots
+- **Flexible Intervals**: Supports 30-minute intervals with services of any duration
+- **Working Hours**: Respects contractor availability and working schedules
+
+### Real-time Validation
+Frontend validation provides immediate feedback:
+- **Date Range Validation**: Prevents selection of past dates or dates beyond availability
+- **Time Filtering**: Automatically filters out past times for current date
+- **Dynamic UI**: Real-time updates to available times based on date selection
+- **User Feedback**: Clear messaging for invalid selections
+
+### Database Models
+```prisma
+model Service {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  duration    Int?     // Duration in minutes
+  price       String?
+  category    String
+  // ... additional fields
+}
+
+model ContractorAvailability {
+  id           Int     @id @default(autoincrement())
+  contractorId Int
+  dayOfWeek    Int     // 0-6 (Sunday to Saturday)
+  startTime    String  // HH:mm format
+  endTime      String  // HH:mm format
+  isAvailable  Boolean @default(true)
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  serviceId   Int
+  userId      Int
+  scheduledAt DateTime
+  status      BookingStatus
+  notes       String?
+  // ... additional tracking fields
+}
+```
 
 ## 🔐 Authentication Architecture
 
@@ -63,9 +130,24 @@ This application implements **enterprise-grade server-side authentication** for 
 
 ## 📄 Pages & Routes
 
-- `/` - Landing page with service information and authentication
-- `/dashboard` - User dashboard with statistics and activity (🔒 Protected)
-- `/profile` - Complete user profile management (🔒 Protected)
+### Public Routes
+- `/` - Landing page with service directory and authentication
+- `/services` - Public service catalog with search and filtering
+- `/services/[id]` - Individual service details with booking interface
+
+### Protected Routes (🔒 Authentication Required)
+- `/dashboard` - User dashboard with booking history and statistics
+- `/profile` - Complete user profile management interface
+- `/my-bookings` - Client booking management and history
+- `/my-bookings/[id]` - Individual booking details and management
+
+### Contractor Routes (🔧 Contractor Access Required)
+- `/contractor/services` - Service management interface for contractors
+- `/contractor/bookings` - Contractor booking management dashboard
+- `/contractor/calendar` - Calendar view for booking and availability management
+
+### Admin Routes (� Admin Access Required)
+- `/admin/contractors` - Contractor management and moderation interface
 
 ## 🔌 API Endpoints
 
@@ -77,6 +159,35 @@ This application implements **enterprise-grade server-side authentication** for 
 ### User Management  
 - `GET /api/user/profile` - Fetch user profile data
 - `PATCH /api/user/profile` - Update user profile information
+
+### Contractor Management
+- `POST /api/contractor/apply` - Submit contractor application
+- `GET /api/contractor/profile` - Get contractor profile
+- `PUT /api/contractor/profile` - Update contractor profile
+
+### Service Management
+- `GET /api/contractor/services` - Get contractor's services
+- `POST /api/contractor/services` - Create new service
+- `PUT /api/contractor/services/[id]` - Update service
+- `DELETE /api/contractor/services/[id]` - Delete service
+- `PATCH /api/contractor/services/[id]/status` - Toggle service status
+
+### Public Service Discovery
+- `GET /api/contractors` - Search and filter contractors
+- `GET /api/contractors/[id]` - Get contractor public profile
+- `GET /api/contractors/categories` - Get service categories
+- `GET /api/services/[id]` - Get service details
+- `GET /api/services/[id]/available-slots` - Get available booking slots
+
+### Booking Management
+- `POST /api/services/[id]/book` - Create new booking
+- `GET /api/contractor/bookings` - Get contractor's bookings
+- `PATCH /api/contractor/bookings/[id]/status` - Update booking status
+- `GET /api/user/bookings` - Get user's bookings
+
+### Admin Endpoints
+- `GET /api/admin/contractors` - Get all contractors for moderation
+- `PATCH /api/admin/contractors/[id]/status` - Update contractor status
 
 ## 🚀 Getting Started
 
