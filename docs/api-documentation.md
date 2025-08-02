@@ -297,7 +297,7 @@ Update booking status.
 **Body:**
 ```json
 {
-  "status": "CONFIRMED", // PENDING, CONFIRMED, COMPLETED, CANCELLED
+  "status": "CONFIRMED", // CONFIRMED, COMPLETED, CANCELLED
   "notes": "Optional status change notes"
 }
 ```
@@ -364,10 +364,9 @@ All endpoints use Zod schema validation for request bodies. Invalid data will re
 4. **Interval Generation**: Creates 30-minute intervals within available periods
 
 ### Booking Status Flow
-1. **PENDING** - Initial booking request
-2. **CONFIRMED** - Contractor accepts booking
-3. **COMPLETED** - Service has been provided
-4. **CANCELLED** - Booking cancelled by either party
+1. **CONFIRMED** - Booking is immediately confirmed upon creation
+2. **COMPLETED** - Service has been provided
+3. **CANCELLED** - Booking cancelled by either party
 
 ### Time Zone Handling
 All datetime values are stored and transmitted in ISO 8601 UTC format. Frontend components handle local time zone conversion.

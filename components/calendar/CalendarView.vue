@@ -31,8 +31,8 @@
           {{ thisWeekBookings.length }}
         </div>
         <div class="stat-desc">
-          {{ thisWeekBookings.filter((b) => b.status === 'PENDING').length }}
-          pending
+          {{ thisWeekBookings.filter((b) => b.status === 'CONFIRMED').length }}
+          confirmed
         </div>
       </div>
 
@@ -109,7 +109,7 @@ interface BookingType {
   id: number
   serviceId: number
   clientId: string
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
+  status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
   scheduledAt: string
   duration?: number
   totalPrice?: number
@@ -266,12 +266,11 @@ const businessHours = computed(() => {
 // Methods
 const getBookingColor = (status: string) => {
   const colors = {
-    PENDING: '#f59e0b', // amber-500
     CONFIRMED: '#10b981', // emerald-500
     CANCELLED: '#6b7280', // gray-500
     COMPLETED: '#3b82f6', // blue-500
   }
-  return colors[status as keyof typeof colors] || colors.PENDING
+  return colors[status as keyof typeof colors] || colors.CONFIRMED
 }
 
 const _changeView = (view: string) => {
@@ -838,11 +837,6 @@ onMounted(() => {
 }
 
 /* Booking status colors */
-:deep(.fc-event[data-status='PENDING']) {
-  background-color: #f59e0b !important;
-  border-color: #d97706 !important;
-}
-
 :deep(.fc-event[data-status='CONFIRMED']) {
   background-color: #10b981 !important;
   border-color: #059669 !important;

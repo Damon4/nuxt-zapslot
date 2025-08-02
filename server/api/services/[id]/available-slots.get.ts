@@ -119,7 +119,7 @@ export default defineEventHandler(async (event) => {
         lte: endDate,
       },
       status: {
-        in: ['PENDING', 'CONFIRMED'],
+        in: ['CONFIRMED'], // Only check confirmed bookings since we no longer use PENDING
       },
     },
     select: {

@@ -135,7 +135,7 @@ model Booking {
   id          Int      @id @default(autoincrement())
   serviceId   Int
   clientId    String
-  status      String   @default("PENDING")
+  status      String   @default("CONFIRMED")
   scheduledAt DateTime
   duration    Int?
   totalPrice  Decimal?
