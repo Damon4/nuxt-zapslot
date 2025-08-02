@@ -71,7 +71,40 @@ try {
 }
 ```
 
-### 4. Authentication Patterns
+### 4. Database Operations
+
+Use a single Prisma Client instance:
+
+```typescript
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+export default defineEventHandler(async (event) => {
+  // Use prisma...
+})
+```
+
+### 5. Form Validation
+
+For forms, use both client-side and server-side validation:
+
+```typescript
+// Client-side validation
+const validateForm = (): boolean => {
+  errors.value = {}
+  let isValid = true
+
+  if (!form.value.field || form.value.field.length < 10) {
+    errors.value.field = 'Field must contain at least 10 characters'
+    isValid = false
+  }
+
+  return isValid
+}
+```
+
+### 6. Authentication Patterns
 
 For protected endpoints:
 
@@ -419,3 +452,112 @@ When generating code for this project:
 10. **Use the existing composables** and utilities when available
 
 This project emphasizes **testing-first development**, **real browser testing with Playwright MCP**, and **comprehensive documentation** for all features.
+
+## 🏗️ Project Structure
+
+```
+├── components/          # Vue components
+├── pages/              # Nuxt pages
+│   ├── admin/          # Admin panel pages
+│   │   └── contractors.vue  # Contractor management interface
+├── server/api/         # API endpoints
+│   ├── contractor/     # Contractor functionality
+│   ├── admin/          # Admin endpoints
+│   │   └── contractors/ # Admin contractor management
+│   └── user/           # User endpoints
+├── prisma/             # Database schema and migrations
+├── composables/        # Vue composables
+├── stores/             # Pinia stores
+└── docs/               # Documentation
+```
+
+### Admin Panel Architecture
+
+**Page: `/admin/contractors`**
+
+- **Purpose**: Complete contractor application management interface
+- **Features**:
+  - Real-time statistics dashboard (Total, Pending, Approved, Rejected)
+  - Advanced filtering by status and pagination
+  - Individual application review with detailed information
+  - One-click approve/reject functionality
+  - Status change dropdown for approved/rejected applications
+  - Responsive design with DaisyUI components
+
+**Key Components**:
+
+- Statistics cards with live data
+- Filter controls for status and page size
+- Application cards with user information and service details
+- Action buttons with loading states
+- Empty state handling
+- Pagination controls
+
+**Security**: Currently uses basic authentication - TODO: Add admin role verification
+
+## 📋 GitHub Workflow
+
+### Creating Issues with GitHub CLI
+
+**Available labels**: enhancement, bug, documentation, duplicate, good first issue, help wanted, invalid, question, wontfix
+
+**Example: Create issue for completed work**
+```bash
+gh issue create --title "✅ Feature Name - Brief Description" \
+  --body "## Completed\n- [x] Item 1\n- [x] Item 2\n\n**Next:** Next steps" \
+  --label "enhancement"
+```
+
+### Creating Pull Requests with GitHub CLI
+
+**Recommended: Use --body-file for detailed descriptions**
+
+```bash
+# Create PR body file
+cat > pr-body.md << 'EOF'
+## Completed
+- [x] Service Management Interface (/contractor/services)
+- [x] Booking Management Interface (/contractor/bookings)  
+- [x] Service Creation/Edit Form with validation
+- [x] Authentication & Authorization System
+
+## Technical Implementation
+- [x] Backend APIs: GET/POST/PUT/DELETE/PATCH for services
+- [x] Frontend Components: ServiceForm, service cards, booking filters
+- [x] Authentication Flow: contractor middleware and auth store
+
+## Testing Results
+- [x] Manual testing across all features
+- [x] Playwright MCP automation testing
+
+**Reference:** docs/services-plan.md Stage 2
+**Next:** Ready for Stage 3 - Public Service Catalog
+EOF
+
+# Create PR using body file
+gh pr create --title "✅ Services System - Stage 2: Contractor Interface" \
+  --body-file pr-body.md \
+  --base main --head feature/services-stage-2
+
+# Clean up
+rm pr-body.md
+```
+
+## 🔄 Migration Guidelines
+
+When changing database schema:
+
+1. Update `prisma/schema.prisma`
+2. Run `prisma migrate dev --name descriptive_name`
+3. Update types in components
+4. Check API compatibility
+5. Update documentation
+
+## 🚀 Deployment Checklist
+
+- [ ] All migrations applied
+- [ ] Environment variables configured
+- [ ] API endpoints tested
+- [ ] Authentication working
+- [ ] UI components display correctly
+- [ ] Errors handled gracefully
