@@ -307,6 +307,14 @@ enum AvailabilityType {
 
 ## 🔄 Development Workflow
 
+### Server Management
+
+⚠️ **CRITICAL**: Before running `npm run dev`, always check if the development server is already running:
+- Check active terminals in VS Code
+- Run `lsof -i :3000` to see if port 3000 is in use
+- If already running, use the existing server instead of starting a duplicate
+- Multiple dev servers can cause port conflicts and performance issues
+
 ### Branch Strategy
 
 1. Create feature branches from `main`
@@ -435,7 +443,10 @@ gh pr create --title "✅ Feature Complete" \
 ### Debug Tools
 
 - **Prisma Studio**: `npx prisma studio` at http://localhost:5555
-- **Dev Server**: `npm run dev` at http://localhost:3001
+- **Dev Server**: `npm run dev` at http://localhost:3000
+  - ⚠️ **IMPORTANT**: Always check if the dev server is already running before starting a new one
+  - Check active terminals or run `lsof -i :3000` to see if port 3000 is in use
+  - If already running, use existing server instead of starting a duplicate
 - **Database Logs**: Check Prisma query logs
 - **Browser DevTools**: Network tab for API debugging
 
