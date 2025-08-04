@@ -43,10 +43,10 @@
               <Icon name="heroicons:sparkles" class="h-5 w-5" />
               Browse All Services
             </NuxtLink>
-            <NuxtLink to="/contractor/services" class="btn btn-outline btn-lg">
+            <button class="btn btn-outline btn-lg" @click="contractorAction">
               <Icon name="heroicons:briefcase" class="h-5 w-5" />
               Become a Contractor
-            </NuxtLink>
+            </button>
           </div>
         </div>
       </div>
@@ -205,12 +205,12 @@
             >
               Book a Service
             </NuxtLink>
-            <NuxtLink
-              to="/contractor/services"
+            <button
               class="btn btn-white btn-lg text-primary"
+              @click="contractorAction"
             >
               Start Earning Today
-            </NuxtLink>
+            </button>
           </div>
         </div>
       </div>
@@ -267,6 +267,21 @@ const popularCategories = [
 ]
 
 const featuredServices = ref<Service[]>([])
+
+// Computed properties
+const contractorAction = computed(() => {
+  const authStore = useAuthStore()
+  if (!authStore.isAuthenticated) {
+    // For unauthenticated users, trigger sign in
+    return () => {
+      const authStore = useAuthStore()
+      authStore.signIn()
+    }
+  } else {
+    // For authenticated users, navigate to profile
+    return () => navigateTo('/profile')
+  }
+})
 
 // Methods
 const searchServices = () => {
