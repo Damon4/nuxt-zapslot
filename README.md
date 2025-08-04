@@ -236,6 +236,9 @@ npx prisma migrate deploy
 
 # Optional: Open Prisma Studio to view your data
 npx prisma studio
+
+# Optional: Seed database with test data
+npm run db:seed
 ```
 
 ### 5. Development Server
@@ -283,7 +286,7 @@ NUXT_PUBLIC_BASE_URL="https://your-domain.com"
 - **Prisma Studio**: Visual database browser
 - **Prisma Migrate**: Database schema migrations
 - **Data Migrations**: Automated data migration system
-- **Database Seeding**: Optional data seeding capabilities
+- **Database Seeding**: Development data seeding with realistic test data
 
 ## 🔄 Migration System
 
@@ -321,7 +324,66 @@ npm run migrate:dev      # Create new schema migration
 npm run migrate:reset    # Reset and re-run all migrations
 npm run db:push          # Push schema changes without migrations
 npm run db:studio        # Open Prisma Studio
+
+# Database seeding
+npm run db:seed          # Populate database with test data
+npm run db:verify        # Verify seeded data
 ```
+
+## 🌱 Database Seeding
+
+The project includes a comprehensive seeding system that populates your database with realistic test data for development.
+
+### What Gets Seeded
+
+- **20 Service Categories**: All supported contractor categories
+- **10 Test Users**: Contractor/client users for testing
+- **10 Contractors**: Realistic contractor profiles with different specializations
+- **40 Services**: Complete coverage of all 20 categories (2 per category)
+- **Availability Schedules**: Realistic working hours for each contractor
+- **Sample Bookings**: Example bookings for testing
+
+### Seeding Commands
+
+```bash
+# Seed the database with test data
+npm run db:seed
+
+# Production-safe seeding (only categories)
+npm run db:seed:prod
+
+# Reset database and reseed
+npm run migrate:reset
+npm run db:seed
+
+# Verify seeded data
+npm run db:verify
+```
+
+### Test Data Overview
+
+| User | Role | Specialization | Services |
+|------|------|----------------|----------|
+| John Smith | Contractor | ⚡ Electrical + 🔨 Construction | 4 services |
+| Sarah Johnson | Contractor | 🧹 Cleaning + 📋 Other | 3 services |
+| Mike Davis | Contractor | 🚿 Plumbing + 🔨 Construction | 4 services |
+| Emma Wilson | Contractor | 🎨 Design + 🎉 Events | 4 services |
+| David Brown | Contractor | 🌐 Web Dev + 💻 IT + 💼 Consulting | 5 services |
+| Lisa Garcia | Contractor | 🚗 Auto + 📦 Courier + ⚙️ Equipment | 5 services |
+| Robert Chen | Contractor | 💄 Health + ⚙️ Equipment | 3 services |
+| Maria Rodriguez | Contractor | 📚 Education + 🌍 Translation | 3 services |
+| Alex Thompson | Contractor | 📸 Photo + 📦 Courier + � Events | 5 services |
+| Jessica Kim | Contractor | ⚖️ Legal + 💼 Business + 🌍 Translation | 4 services |
+
+The seeded data includes realistic:
+- Price ranges ($25-$5000 for different service types)
+- Service durations (60-2400 minutes for various projects)
+- Contact information and portfolios
+- Availability schedules (different days/hours)
+- Social media links and websites
+- Complete coverage of all 20 service categories
+
+For production environments, use `npm run db:seed:prod` which only creates service categories without test users.
 
 ### Creating Data Migrations
 
@@ -371,6 +433,9 @@ npm run migrate:dev      # Create new schema migration
 npm run migrate:reset    # Reset and re-run all migrations
 npm run db:push          # Push schema without migrations
 npm run db:studio        # Open Prisma Studio
+npm run db:seed          # Populate database with test data
+npm run db:seed:prod     # Production-safe seeding (categories only)
+npm run db:verify        # Verify seeded data
 
 # Code Quality
 npm run lint             # Run ESLint
