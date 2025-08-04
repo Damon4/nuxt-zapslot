@@ -12,7 +12,7 @@ This stage focused on implementing the contractor-facing interface for service a
 - **Location**: `/contractor/services`
 - **Features**:
   - Complete CRUD operations for services
-  - Service statistics dashboard (Total Services, Bookings, Pending Bookings)
+  - Service statistics dashboard (Total Services, Bookings, Active Bookings)
   - Active/Inactive service toggles
   - Professional service creation form with validation
   - Edit and delete service capabilities
@@ -20,8 +20,8 @@ This stage focused on implementing the contractor-facing interface for service a
 ### 2. Booking Management Interface
 - **Location**: `/contractor/bookings`  
 - **Features**:
-  - Booking statistics overview (Total, Pending, Confirmed, Monthly)
-  - Status filtering (All, Pending, Confirmed, Cancelled, Completed)
+  - Booking statistics overview (Total, Confirmed, Cancelled, Completed)
+  - Status filtering (All, Confirmed, Cancelled, Completed)
   - Sorting options (Date, Created, Status)
   - Empty state handling with informative messages
 

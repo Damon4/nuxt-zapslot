@@ -68,13 +68,11 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check user's active bookings limit
+    // Check user's active bookings limit (only confirmed bookings count)
     const activeBookingsCount = await prisma.booking.count({
       where: {
         clientId: session.user.id,
-        status: {
-          in: ['PENDING', 'CONFIRMED'],
-        },
+        status: 'CONFIRMED',
       },
     })
 
@@ -92,6 +90,7 @@ export default defineEventHandler(async (event) => {
         scheduledAt: scheduledDate,
         duration: service.duration,
         totalPrice: service.price,
+        status: 'CONFIRMED', // Create bookings as confirmed immediately
         notes,
       },
       include: {

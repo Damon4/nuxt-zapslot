@@ -26,3 +26,4 @@ logs
 /generated/prisma
 *.db
 .vercel
+public/.well-known/appspecific/com.chrome.devtools.json

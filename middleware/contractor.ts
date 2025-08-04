@@ -1,16 +1,18 @@
 export default defineNuxtRouteMiddleware(async () => {
-  try {
-    // For client-side, first check auth state from store
-    if (import.meta.client) {
-      const authStore = useAuthStore()
+  // Skip middleware on server side to avoid SSR issues
+  if (import.meta.server) {
+    return
+  }
 
-      // If not authenticated, redirect immediately
-      if (!authStore.isAuthenticated) {
-        return navigateTo('/profile')
-      }
+  try {
+    const authStore = useAuthStore()
+
+    // If not authenticated, redirect immediately
+    if (!authStore.isAuthenticated) {
+      return navigateTo('/profile')
     }
 
-    // Check if user has contractor profile
+    // Check if user has contractor profile (only on client-side)
     const response = await $fetch('/api/contractor/profile')
 
     if (!response.success || !response.data) {
@@ -27,14 +29,9 @@ export default defineNuxtRouteMiddleware(async () => {
         statusMessage: 'Contractor approval required',
       })
     }
-  } catch (error: unknown) {
-    // For client-side, redirect to profile page
-    if (import.meta.client) {
-      await navigateTo('/profile')
-      return
-    }
-
-    // For server-side, throw the error
-    throw error
+  } catch {
+    // Redirect to profile page on any error
+    await navigateTo('/profile')
+    return
   }
 })

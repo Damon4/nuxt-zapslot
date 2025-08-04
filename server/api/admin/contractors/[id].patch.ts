@@ -4,8 +4,8 @@ import { requireAdmin } from '~/server/utils/auth'
 
 const prisma = new PrismaClient()
 
-const moderationSchema = z.object({
-  status: z.number().int().min(-1).max(1), // -1: rejected, 0: pending, 1: approved
+const contractorManagementSchema = z.object({
+  status: z.number().int().min(1).max(3), // 1: approved, 3: suspended (no pending/rejected)
 })
 
 export default defineEventHandler(async (event) => {
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const { status } = moderationSchema.parse(body)
+    const { status } = contractorManagementSchema.parse(body)
 
     const existingContractor = await prisma.contractor.findUnique({
       where: { id: parseInt(contractorId) },
@@ -33,6 +33,15 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 404,
         statusMessage: 'Contractor not found',
+      })
+    }
+
+    // Only allow changing between approved (1) and suspended (3)
+    if (![1, 3].includes(status)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage:
+          'Invalid status. Only approved (1) and suspended (3) are allowed.',
       })
     }
 

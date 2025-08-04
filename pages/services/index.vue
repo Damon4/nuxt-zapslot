@@ -189,11 +189,11 @@ const maxPrice = ref('')
 const sortBy = ref('createdAt')
 const pagination = ref<Pagination | null>(null)
 
-// Categories for filter dropdown
+// Categories for filter dropdown - updated to match actual database categories
 const categories = [
-  'Web Development and IT',
-  'Cleaning Services',
   'Computer/Internet',
+  'Design/Creative',
+  'Cleaning Services',
   'Home Repair and Maintenance',
   'Beauty and Personal Care',
   'Transportation',
@@ -286,6 +286,37 @@ const fetchServices = async (page = 1) => {
 
 // Initialize
 onMounted(() => {
+  // Initialize filters from URL query parameters
+  const route = useRoute()
+
+  if (route.query.search) {
+    searchQuery.value = route.query.search as string
+  }
+
+  if (route.query.category) {
+    const categoryId = parseInt(route.query.category as string)
+    // Map category ID to category name based on actual categories in database
+    const categoryMap: { [key: number]: string } = {
+      1: 'Home Repair and Maintenance',
+      2: 'Cleaning Services',
+      3: 'Computer/Internet', // This matches the actual category in DB for web development
+      4: 'Beauty and Personal Care',
+      5: 'Education and Tutoring',
+      6: 'Design/Creative', // This matches the actual category in DB
+      7: 'Transportation',
+      8: 'Event Services',
+    }
+    selectedCategory.value = categoryMap[categoryId] || ''
+  }
+
+  if (route.query.priceTo) {
+    maxPrice.value = route.query.priceTo as string
+  }
+
+  if (route.query.sortBy) {
+    sortBy.value = route.query.sortBy as string
+  }
+
   fetchServices()
 })
 </script>

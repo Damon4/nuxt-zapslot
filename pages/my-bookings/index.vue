@@ -64,7 +64,6 @@ const filteredBookings = computed(() => {
 const bookingStats = computed(() => {
   const stats = {
     total: bookings.value.length,
-    pending: bookings.value.filter((b) => b.status === 'PENDING').length,
     confirmed: bookings.value.filter((b) => b.status === 'CONFIRMED').length,
     completed: bookings.value.filter((b) => b.status === 'COMPLETED').length,
     cancelled: bookings.value.filter((b) => b.status === 'CANCELLED').length,
@@ -163,16 +162,10 @@ onMounted(() => {
       <!-- Content -->
       <div v-else>
         <!-- Stats Cards -->
-        <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
+        <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
           <div class="stat bg-base-200 rounded-lg p-4">
             <div class="stat-title text-xs">Total Bookings</div>
             <div class="stat-value text-lg">{{ bookingStats.total }}</div>
-          </div>
-          <div class="stat bg-base-200 rounded-lg p-4">
-            <div class="stat-title text-xs">Pending</div>
-            <div class="stat-value text-warning text-lg">
-              {{ bookingStats.pending }}
-            </div>
           </div>
           <div class="stat bg-base-200 rounded-lg p-4">
             <div class="stat-title text-xs">Confirmed</div>
@@ -208,7 +201,6 @@ onMounted(() => {
                   class="select select-sm select-bordered"
                 >
                   <option value="all">All Bookings</option>
-                  <option value="PENDING">Pending</option>
                   <option value="CONFIRMED">Confirmed</option>
                   <option value="COMPLETED">Completed</option>
                   <option value="CANCELLED">Cancelled</option>

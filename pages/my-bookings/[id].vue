@@ -25,7 +25,7 @@ interface BookingDetail {
   id: number
   serviceId: number
   clientId: string
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
+  status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'
   scheduledAt: string
   duration?: number
   totalPrice?: number
@@ -71,18 +71,11 @@ const statusConfig = computed(() => {
   }
 
   const configs = {
-    PENDING: {
-      badge: 'badge-warning',
-      icon: 'tabler:clock',
-      text: 'Pending',
-      description: 'Waiting for contractor confirmation',
-      color: 'warning',
-    },
     CONFIRMED: {
       badge: 'badge-success',
       icon: 'tabler:check',
       text: 'Confirmed',
-      description: 'Booking confirmed by contractor',
+      description: 'Booking confirmed and ready',
       color: 'success',
     },
     CANCELLED: {
@@ -101,13 +94,13 @@ const statusConfig = computed(() => {
     },
   }
 
-  return configs[booking.value.status] || configs.PENDING
+  return configs[booking.value.status] || configs.CONFIRMED
 })
 
 const canCancel = computed(() => {
   if (
     !booking.value ||
-    (booking.value.status !== 'PENDING' && booking.value.status !== 'CONFIRMED')
+    booking.value.status !== 'CONFIRMED' // Only confirmed bookings can be cancelled
   ) {
     return false
   }
@@ -541,9 +534,7 @@ onMounted(() => {
             </div>
 
             <div
-              v-else-if="
-                booking.status === 'PENDING' || booking.status === 'CONFIRMED'
-              "
+              v-else-if="booking.status === 'CONFIRMED'"
               class="alert alert-info mt-4"
             >
               <Icon name="tabler:clock" class="h-5 w-5" />
