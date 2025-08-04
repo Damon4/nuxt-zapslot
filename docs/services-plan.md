@@ -39,7 +39,7 @@ model Booking {
   clientId    String
   client      User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
-  status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED, COMPLETED
+  status      String   @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED
   scheduledAt DateTime // when the service is scheduled
   duration    Int?     // actual duration (may differ from Service.duration)
   totalPrice  Decimal? // final price (can be negotiable)
@@ -168,8 +168,7 @@ model Booking {
 
 ### Booking Statuses
 
-- `PENDING` - waiting for contractor confirmation
-- `CONFIRMED` - confirmed by contractor
+- `CONFIRMED` - automatically confirmed upon booking
 - `CANCELLED` - cancelled (by client or contractor)
 - `COMPLETED` - service completed
 
@@ -441,7 +440,7 @@ POST /api/contractor/delete
 #### Stage 4: Client Booking Management ✅ COMPLETED
 1. ✅ "My Bookings" page for clients (`/my-bookings`)
    - Full booking management interface with filtering and sorting
-   - Statistics display (Total, Pending, Confirmed, Completed, Cancelled)
+   - Statistics display (Total, Confirmed, Completed, Cancelled)
    - BookingCard component with NuxtTime for SSR-safe dates
    - Breadcrumb navigation from Dashboard
 
@@ -452,7 +451,7 @@ POST /api/contractor/delete
 
 3. ✅ Technical implementation
    - BookingCard component shows status badges
-   - Proper status handling (Pending, Confirmed, Completed, Cancelled)
+   - Proper status handling (Confirmed, Completed, Cancelled)
    - Unified "bookings" terminology across all interfaces
    - Replaced ClientOnly with NuxtTime for hydration-safe dates
    - Russian localization for relative dates

@@ -301,6 +301,17 @@ The availability system is based on detailed contractor availability schedules:
 - **TimeSlot**: Blocked time slots for specific dates
 - **Service booking**: Duration-based slot calculation with conflict detection
 
+### Booking System
+
+The booking system provides immediate confirmation for all service bookings:
+
+- **Immediate Confirmation**: All bookings are created with CONFIRMED status (no approval needed)
+- **Status Flow**: CONFIRMED → COMPLETED/CANCELLED (no PENDING state)
+- **Real-time Updates**: Available slots refresh immediately after booking
+- **Self-booking Prevention**: Users cannot book their own services
+- **Advance Booking**: Minimum 2-hour advance booking requirement
+- **Slot Validation**: Strong conflict detection prevents double bookings
+
 ## 🔄 Development Workflow
 
 ### Server Management
@@ -382,7 +393,8 @@ gh pr create --title "✅ Feature Complete" \
 - **Authentication System**: User auth with session management
 - **Contractor Application**: Multi-step application form
 - **Service Management**: CRUD operations for contractor services
-- **Booking System**: Service booking with status management
+- **Booking System**: Immediate confirmation booking with CONFIRMED status
+- **Calendar Integration**: Real-time availability and booking slots
 - **Admin Interface**: Contractor moderation dashboard
 - **Public Directory**: Contractor discovery and search
 - **Calendar Integration**: Availability and booking calendar
