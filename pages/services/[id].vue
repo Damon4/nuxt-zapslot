@@ -280,8 +280,8 @@
               <div class="alert alert-info mt-4 text-sm">
                 <Icon name="tabler:info-circle" class="h-4 w-4" />
                 <span
-                  >Your booking request will be sent to the contractor for
-                  confirmation.</span
+                  >Your booking will be confirmed immediately and you'll receive
+                  details shortly.</span
                 >
               </div>
 
