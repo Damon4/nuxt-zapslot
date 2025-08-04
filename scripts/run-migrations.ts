@@ -20,9 +20,9 @@ async function createMigrationTable() {
   try {
     await prisma.$executeRaw`
       CREATE TABLE IF NOT EXISTS _data_migrations (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL UNIQUE,
-        executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        executed_at TIMESTAMP(3) NOT NULL
       )
     `
     console.log('📋 Migration tracking table ready')
@@ -45,8 +45,10 @@ async function getExecutedMigrations(): Promise<string[]> {
 }
 
 async function recordMigration(name: string) {
+  // Generate a unique ID for the migration record
+  const id = `migration_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   await prisma.$executeRaw`
-    INSERT INTO _data_migrations (name) VALUES (${name})
+    INSERT INTO _data_migrations (id, name, executed_at) VALUES (${id}, ${name}, NOW())
   `
 }
 
