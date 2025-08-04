@@ -8,7 +8,7 @@
 
     <!-- Error State -->
     <div
-      v-else-if="error"
+      v-else-if="!loading && serviceError"
       class="flex min-h-screen items-center justify-center"
     >
       <div class="text-center">
@@ -25,7 +25,7 @@
     </div>
 
     <!-- Service Detail -->
-    <div v-else-if="service" class="container mx-auto px-4 py-8">
+    <div v-else-if="!loading && service" class="container mx-auto px-4 py-8">
       <!-- Breadcrumb -->
       <div class="breadcrumbs mb-6 text-sm">
         <ul>
@@ -39,7 +39,7 @@
         <!-- Main Content -->
         <div class="lg:col-span-2">
           <!-- Service Header -->
-          <div class="card bg-base-100 mb-6 shadow-lg">
+          <div class="card bg-base-200 mb-6 shadow-lg">
             <div class="card-body">
               <div class="mb-4 flex items-start justify-between">
                 <div>
@@ -104,7 +104,7 @@
           </div>
 
           <!-- Service Description -->
-          <div class="card bg-base-100 mb-6 shadow-lg">
+          <div class="card bg-base-200 mb-6 shadow-lg">
             <div class="card-body">
               <h2 class="card-title mb-4 text-xl">
                 <Icon name="tabler:file-text" class="h-6 w-6" />
@@ -122,7 +122,7 @@
         <!-- Sidebar -->
         <div class="lg:col-span-1">
           <!-- Contractor Info -->
-          <div class="card bg-base-100 mb-6 shadow-lg">
+          <div class="card bg-base-200 mb-6 shadow-lg">
             <div class="card-body">
               <h2 class="card-title mb-4 text-xl">
                 <Icon name="tabler:user" class="h-6 w-6" />
@@ -200,9 +200,9 @@
                   <input
                     v-model="bookingDate"
                     type="date"
-                    class="input input-bordered bg-base-100 text-base-content"
+                    class="input input-bordered bg-base-200 text-base-content"
                     :min="minDate"
-                    :max="maxDate"
+                    :max="maxDateComputed"
                   >
                 </div>
 
@@ -214,7 +214,7 @@
                   </label>
                   <select
                     v-model="bookingTime"
-                    class="select select-bordered bg-base-100 text-base-content"
+                    class="select select-bordered bg-base-200 text-base-content"
                     :disabled="
                       !bookingDate || availableTimesForDate.length === 0
                     "
@@ -260,7 +260,7 @@
                   </label>
                   <textarea
                     v-model="bookingNotes"
-                    class="textarea textarea-bordered bg-base-100 text-base-content"
+                    class="textarea textarea-bordered bg-base-200 text-base-content"
                     placeholder="Any special requirements or details..."
                     rows="3"
                   />
@@ -300,6 +300,23 @@
         </div>
       </div>
     </div>
+
+    <!-- Fallback state -->
+    <div v-else class="flex min-h-screen items-center justify-center">
+      <div class="text-center">
+        <Icon
+          name="tabler:alert-circle"
+          class="text-warning mx-auto mb-4 h-24 w-24"
+        />
+        <h2 class="mb-2 text-2xl font-bold">Service Not Available</h2>
+        <p class="text-base-content/70 mb-6">
+          This service is currently not available.
+        </p>
+        <NuxtLink to="/services" class="btn btn-primary">
+          Browse All Services
+        </NuxtLink>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -308,7 +325,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 
 // Get service ID from route
 const route = useRoute()
-const serviceId = route.params.id
+const serviceId = route.params.id as string
 
 // Notifications
 const { success, error: showError } = useNotifications()
@@ -341,38 +358,64 @@ interface Service {
   bookingsCount: number
 }
 
-// State
-const service = ref<Service | null>(null)
-const loading = ref(true)
-const error = ref('')
-const bookingLoading = ref(false)
-const slotsLoading = ref(false)
-
-// Available slots
-const availableSlots = ref<
-  Array<{ date: string; time: string; datetime: string }>
->([])
-const nextAvailableSlot = ref<{
+interface AvailableSlot {
   date: string
   time: string
   datetime: string
-} | null>(null)
+}
+
+// Fetch service data using useFetch
+const {
+  data: serviceData,
+  pending: loading,
+  error: serviceError,
+} = useFetch<{ service: Service }>(`/api/services/${serviceId}`, {
+  key: `service-${serviceId}`,
+})
+
+// Fetch available slots using useFetch
+const {
+  data: slotsData,
+  pending: slotsLoading,
+  refresh: refreshSlots,
+} = useFetch<{
+  availableSlots: AvailableSlot[]
+  nextAvailableSlot: AvailableSlot | null
+}>(`/api/services/${serviceId}/available-slots`, {
+  key: `slots-${serviceId}`,
+})
+
+// Computed reactive data
+const service = computed(() => serviceData.value?.service || null)
+const availableSlots = computed(() => slotsData.value?.availableSlots || [])
+const nextAvailableSlot = computed(
+  () => slotsData.value?.nextAvailableSlot || null
+)
+const error = computed(
+  () => serviceError.value?.data?.message || 'Service not found'
+)
+
+// Booking state
+const bookingLoading = ref(false)
 
 // Booking form
 const bookingDate = ref('')
 const bookingTime = ref('')
 const bookingNotes = ref('')
 
-// Client-side minimum and maximum dates to prevent hydration mismatch
+// Client-side minimum date to prevent hydration mismatch
 const minDate = ref('')
-const maxDate = ref('')
 
 onMounted(() => {
   const today = new Date()
   minDate.value = today.toISOString().split('T')[0]
-
-  // Set today as default date
   bookingDate.value = today.toISOString().split('T')[0]
+
+  // Set default booking time from next available slot
+  if (nextAvailableSlot.value && !bookingTime.value) {
+    bookingDate.value = nextAvailableSlot.value.date
+    bookingTime.value = nextAvailableSlot.value.time
+  }
 })
 
 // Computed properties
@@ -395,15 +438,15 @@ const availableTimesForDate = computed(() => {
 })
 
 // Update max date based on available slots
-const updateDateLimits = () => {
+const maxDateComputed = computed(() => {
   if (availableSlots.value.length > 0) {
     const dates = availableSlots.value
       .map((slot) => slot.date)
       .sort((a, b) => a.localeCompare(b))
-    const lastAvailableDate = dates[dates.length - 1]
-    maxDate.value = lastAvailableDate
+    return dates[dates.length - 1]
   }
-}
+  return ''
+})
 
 // Watch for date changes and reset time if selected time is no longer available
 watch(bookingDate, () => {
@@ -468,53 +511,6 @@ const formatDate = (dateStr: string): string => {
   })
 }
 
-// Fetch service details
-const fetchService = async () => {
-  try {
-    loading.value = true
-    const response = await $fetch<{ service: Service }>(
-      `/api/services/${serviceId}`
-    )
-    service.value = response.service
-
-    // Fetch available slots after service is loaded
-    await fetchAvailableSlots()
-  } catch (err: unknown) {
-    const errorData = err as { data?: { message?: string } }
-    error.value = errorData.data?.message || 'Service not found'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Fetch available time slots
-const fetchAvailableSlots = async () => {
-  try {
-    slotsLoading.value = true
-    const response = await $fetch<{
-      availableSlots: Array<{ date: string; time: string; datetime: string }>
-      nextAvailableSlot: { date: string; time: string; datetime: string } | null
-    }>(`/api/services/${serviceId}/available-slots`)
-
-    availableSlots.value = response.availableSlots
-    nextAvailableSlot.value = response.nextAvailableSlot
-
-    // Update date limits based on available slots
-    updateDateLimits()
-
-    // Set the next available slot as default if no time is selected
-    if (nextAvailableSlot.value && !bookingTime.value) {
-      bookingDate.value = nextAvailableSlot.value.date
-      bookingTime.value = nextAvailableSlot.value.time
-    }
-  } catch (err: unknown) {
-    console.error('Failed to fetch available slots:', err)
-    // Don't show error to user, just log it
-  } finally {
-    slotsLoading.value = false
-  }
-}
-
 // Handle booking
 const handleBooking = async () => {
   if (!bookingDate.value || !bookingTime.value) return
@@ -543,12 +539,7 @@ const handleBooking = async () => {
     )
 
     // Refresh available slots to show updated availability
-    await fetchAvailableSlots()
-
-    // Update service bookings count
-    if (service.value) {
-      service.value.bookingsCount += 1
-    }
+    await refreshSlots()
 
     // Redirect to specific booking page after a short delay
     setTimeout(() => {
@@ -565,11 +556,6 @@ const handleBooking = async () => {
     bookingLoading.value = false
   }
 }
-
-// Initialize
-onMounted(() => {
-  fetchService()
-})
 
 // Watch for date changes to update available times
 watch(bookingDate, async (newDate) => {
