@@ -87,24 +87,42 @@
         </div>
 
         <div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-          <div
-            v-for="category in popularCategories"
-            :key="category.id"
-            class="card bg-base-100 group cursor-pointer shadow-lg transition-all hover:shadow-xl"
-            @click="navigateToCategory(category.id)"
-          >
-            <div class="card-body items-center p-6 text-center">
-              <div
-                class="mb-3 text-4xl transition-transform group-hover:scale-110"
-              >
-                {{ category.icon }}
+          <!-- Loading state for categories -->
+          <template v-if="categoriesLoading">
+            <div
+              v-for="n in 8"
+              :key="`skeleton-${n}`"
+              class="card bg-base-100 shadow-lg"
+            >
+              <div class="card-body items-center p-6 text-center">
+                <div class="skeleton mb-3 h-12 w-12 rounded-full" />
+                <div class="skeleton h-4 w-20" />
+                <div class="skeleton h-3 w-16" />
               </div>
-              <h3 class="card-title text-sm">{{ category.name }}</h3>
-              <p class="text-base-content/60 text-xs">
-                {{ category.count }} services
-              </p>
             </div>
-          </div>
+          </template>
+
+          <!-- Real categories -->
+          <template v-else>
+            <div
+              v-for="category in popularCategories"
+              :key="category.id"
+              class="card bg-base-100 group cursor-pointer shadow-lg transition-all hover:shadow-xl"
+              @click="navigateToCategory(category.id)"
+            >
+              <div class="card-body items-center p-6 text-center">
+                <div
+                  class="mb-3 text-4xl transition-transform group-hover:scale-110"
+                >
+                  {{ category.icon }}
+                </div>
+                <h3 class="card-title text-sm">{{ category.name }}</h3>
+                <p class="text-base-content/60 text-xs">
+                  {{ category.count }} services
+                </p>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </section>
@@ -226,6 +244,9 @@ useSeoMeta({
     'Connect with verified professionals for all your service needs. From home repairs to web development - book instantly with immediate confirmation.',
 })
 
+// Composables
+const { categories, loading: categoriesLoading } = useCategories()
+
 // Types
 interface Service {
   id: number
@@ -255,16 +276,75 @@ const stats = reactive({
   categories: 20,
 })
 
-const popularCategories = [
-  { id: 1, name: 'Home Repair', icon: '🔧', count: 45 },
-  { id: 2, name: 'Cleaning', icon: '🧹', count: 38 },
-  { id: 3, name: 'Web Development', icon: '💻', count: 22 }, // Maps to Computer/Internet
-  { id: 4, name: 'Beauty & Health', icon: '💄', count: 31 },
-  { id: 5, name: 'Tutoring', icon: '📚', count: 18 },
-  { id: 6, name: 'Design', icon: '🎨', count: 14 }, // Maps to Design/Creative
-  { id: 7, name: 'Auto Services', icon: '🚗', count: 26 },
-  { id: 8, name: 'Event Planning', icon: '🎉', count: 12 },
-]
+// Helper functions for emoji extraction
+const extractEmojiAndName = (categoryName: string) => {
+  // More comprehensive regex for emojis
+  const emojiRegex =
+    /^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])+\s*/u
+  const match = categoryName.match(emojiRegex)
+
+  const emoji = match ? match[0].trim() : '📋'
+  const name = categoryName.replace(emojiRegex, '').trim()
+
+  return { emoji, name }
+}
+
+const popularCategories = computed(() => {
+  // Select specific categories with diverse icons for better visual appeal
+  const preferredCategoryNames = [
+    '🔨 Repair and Construction',
+    '💻 Computer Assistance',
+    '🧹 Cleaning Services',
+    '🎨 Design and Interior',
+    '🚗 Auto Services',
+    '💄 Beauty and Health',
+    '📚 Tutoring and Education',
+    '🎉 Event Organization',
+  ]
+
+  const selectedCategories: Array<{
+    id: number
+    name: string
+    icon: string
+    count: number
+  }> = []
+
+  // First, try to find preferred categories
+  preferredCategoryNames.forEach((prefName) => {
+    const found = categories.value.find((cat) => cat.name === prefName)
+    if (found && selectedCategories.length < 8) {
+      const { emoji, name } = extractEmojiAndName(found.name)
+      selectedCategories.push({
+        id: found.id,
+        name,
+        icon: emoji,
+        count: 0,
+      })
+    }
+  })
+
+  // Fill remaining slots with other categories if needed
+  if (selectedCategories.length < 8) {
+    categories.value.forEach((category) => {
+      if (selectedCategories.length >= 8) return
+
+      const alreadyAdded = selectedCategories.some(
+        (sc) => sc.id === category.id
+      )
+      if (!alreadyAdded) {
+        const { emoji, name } = extractEmojiAndName(category.name)
+        selectedCategories.push({
+          id: category.id,
+          name,
+          icon: emoji,
+          count: 0,
+        })
+      }
+    })
+  }
+
+  return selectedCategories.slice(0, 8)
+})
 
 const featuredServices = ref<Service[]>([])
 
