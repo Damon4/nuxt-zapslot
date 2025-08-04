@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
 import { requireAuth } from '~/server/utils/auth'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/lib/prisma'
 
 export default defineEventHandler(async (event) => {
   const session = await requireAuth(event)

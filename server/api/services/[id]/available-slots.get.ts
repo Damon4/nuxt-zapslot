@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '~/lib/prisma'
 import {
   addDays,
   format,
@@ -8,8 +8,6 @@ import {
   setHours,
   setMinutes,
 } from 'date-fns'
-
-const prisma = new PrismaClient()
 
 interface AvailableSlot {
   date: string

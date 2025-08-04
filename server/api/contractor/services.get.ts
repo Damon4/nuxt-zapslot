@@ -1,8 +1,6 @@
 import { z } from 'zod'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '~/lib/prisma'
 import { requireAuth } from '~/server/utils/auth'
-
-const prisma = new PrismaClient()
 
 const serviceSchema = z.object({
   title: z.string().min(10).max(100),
