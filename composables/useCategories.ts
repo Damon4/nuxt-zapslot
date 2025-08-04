@@ -4,6 +4,7 @@ export interface Category {
   id: number
   name: string
   description?: string
+  serviceCount: number
 }
 
 export interface CategoriesResponse {

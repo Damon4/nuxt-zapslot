@@ -318,7 +318,7 @@ const popularCategories = computed(() => {
         id: found.id,
         name,
         icon: emoji,
-        count: 0,
+        count: found.serviceCount,
       })
     }
   })
@@ -337,7 +337,7 @@ const popularCategories = computed(() => {
           id: category.id,
           name,
           icon: emoji,
-          count: 0,
+          count: category.serviceCount,
         })
       }
     })

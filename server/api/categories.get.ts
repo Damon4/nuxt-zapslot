@@ -17,8 +17,33 @@ export default defineEventHandler(async (_event) => {
       },
     })
 
+    // Get service counts for all categories in one query
+    const serviceCounts = await prisma.service.groupBy({
+      by: ['category'],
+      where: {
+        isActive: true,
+        contractor: {
+          status: 1, // Only active contractors
+        },
+      },
+      _count: {
+        id: true,
+      },
+    })
+
+    // Create a map for quick lookup
+    const serviceCountMap = new Map(
+      serviceCounts.map((item) => [item.category, item._count.id])
+    )
+
+    // Combine categories with their service counts
+    const categoriesWithCounts = categories.map((category) => ({
+      ...category,
+      serviceCount: serviceCountMap.get(category.name) || 0,
+    }))
+
     return {
-      categories,
+      categories: categoriesWithCounts,
     }
   } catch (error) {
     console.error('Error fetching categories:', error)
