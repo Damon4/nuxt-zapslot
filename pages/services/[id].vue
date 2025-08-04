@@ -525,24 +525,35 @@ const handleBooking = async () => {
     // Combine date and time
     const scheduledAt = new Date(`${bookingDate.value}T${bookingTime.value}`)
 
-    await $fetch(`/api/services/${serviceId}/book`, {
-      method: 'POST',
-      body: {
-        scheduledAt: scheduledAt.toISOString(),
-        notes: bookingNotes.value,
-      },
-    })
+    const response = await $fetch<{ booking: { id: number } }>(
+      `/api/services/${serviceId}/book`,
+      {
+        method: 'POST',
+        body: {
+          scheduledAt: scheduledAt.toISOString(),
+          notes: bookingNotes.value,
+        },
+      }
+    )
 
     // Show success notification
     success(
-      'Booking Successful!',
-      'Your booking request has been sent to the contractor. They will contact you soon to confirm the details.'
+      'Booking Confirmed!',
+      'Your booking has been confirmed! Redirecting to booking details...'
     )
 
-    // Reset form
-    bookingDate.value = ''
-    bookingTime.value = ''
-    bookingNotes.value = ''
+    // Refresh available slots to show updated availability
+    await fetchAvailableSlots()
+
+    // Update service bookings count
+    if (service.value) {
+      service.value.bookingsCount += 1
+    }
+
+    // Redirect to specific booking page after a short delay
+    setTimeout(() => {
+      navigateTo(`/my-bookings/${response.booking.id}`)
+    }, 1500)
   } catch (err: unknown) {
     // Show error notification
     const errorData = err as { data?: { message?: string } }
