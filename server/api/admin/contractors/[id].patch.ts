@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { requireAdmin } from '~/server/utils/auth'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/lib/prisma'
 
 const contractorManagementSchema = z.object({
   status: z.number().int().min(1).max(3), // 1: approved, 3: suspended (no pending/rejected)

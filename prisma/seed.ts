@@ -857,10 +857,13 @@ async function main() {
     },
   ]
 
+  // Create services and store their IDs
+  const createdServices = []
   for (const service of servicesData) {
-    await prisma.service.create({
+    const createdService = await prisma.service.create({
       data: service,
     })
+    createdServices.push(createdService)
   }
 
   // Seed contractor availability
@@ -961,29 +964,248 @@ async function main() {
   nextWeek.setDate(nextWeek.getDate() + 7)
   nextWeek.setHours(14, 0, 0, 0)
 
-  // Create sample bookings between users (user-001 books services from others)
+  const lastWeek = new Date()
+  lastWeek.setDate(lastWeek.getDate() - 7)
+  lastWeek.setHours(9, 0, 0, 0)
+
+  const lastMonth = new Date()
+  lastMonth.setMonth(lastMonth.getMonth() - 1)
+  lastMonth.setHours(15, 30, 0, 0)
+
+  // Create sample bookings with varying amounts for different services
   const bookingsData = [
+    // Popular services with more bookings
     {
-      serviceId: 3, // Sarah's Deep House Cleaning
-      clientId: 'user-001', // John books Sarah's service
-      scheduledAt: tomorrow,
+      serviceId: createdServices[2].id, // Deep House Cleaning
+      clientId: 'user-001',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
       duration: 240,
       totalPrice: 120.0,
       notes: 'Full house deep cleaning before guests arrive',
     },
     {
-      serviceId: 7, // Emma's Interior Design Consultation
-      clientId: 'user-002', // Sarah books Emma's service
-      scheduledAt: nextWeek,
+      serviceId: createdServices[2].id, // Deep House Cleaning
+      clientId: 'user-002',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 240,
+      totalPrice: 120.0,
+      notes: 'Monthly deep cleaning service',
+    },
+    {
+      serviceId: createdServices[6].id, // Interior Design Consultation
+      clientId: 'user-003',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
       duration: 120,
       totalPrice: 125.0,
       notes: 'Need consultation for living room redesign',
     },
+    {
+      serviceId: createdServices[6].id, // Interior Design Consultation
+      clientId: 'user-004',
+      scheduledAt: nextWeek,
+      duration: 120,
+      totalPrice: 125.0,
+      notes: 'Bedroom makeover consultation',
+    },
+    {
+      serviceId: createdServices[6].id, // Interior Design Consultation
+      clientId: 'user-005',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 120,
+      totalPrice: 125.0,
+      notes: 'Kitchen design ideas needed',
+    },
+    // Electrical services (popular)
+    {
+      serviceId: createdServices[0].id, // Electrical Installation & Repair
+      clientId: 'user-002',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 120,
+      totalPrice: 200.0,
+      notes: 'Install new outlets in garage',
+    },
+    {
+      serviceId: createdServices[0].id, // Electrical Installation & Repair
+      clientId: 'user-003',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 180,
+      totalPrice: 300.0,
+      notes: 'Upgrade electrical panel',
+    },
+    {
+      serviceId: createdServices[1].id, // Emergency Electrical Services
+      clientId: 'user-004',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 60,
+      totalPrice: 150.0,
+      notes: 'Power outage emergency call',
+    },
+    // Handyman services (very popular)
+    {
+      serviceId: createdServices[28].id, // Handyman Services
+      clientId: 'user-001',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 90,
+      totalPrice: 90.0,
+      notes: 'Fix squeaky door hinges',
+    },
+    {
+      serviceId: createdServices[28].id, // Handyman Services
+      clientId: 'user-002',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 120,
+      totalPrice: 120.0,
+      notes: 'Assemble IKEA furniture',
+    },
+    {
+      serviceId: createdServices[28].id, // Handyman Services
+      clientId: 'user-003',
+      scheduledAt: tomorrow,
+      duration: 90,
+      totalPrice: 90.0,
+      notes: 'Mount TV on wall',
+    },
+    {
+      serviceId: createdServices[28].id, // Handyman Services
+      clientId: 'user-005',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 60,
+      totalPrice: 60.0,
+      notes: 'Fix loose cabinet handles',
+    },
+    {
+      serviceId: createdServices[28].id, // Handyman Services
+      clientId: 'user-006',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 150,
+      totalPrice: 150.0,
+      notes: 'Install floating shelves',
+    },
+    // Website Development (high-value service)
+    {
+      serviceId: createdServices[8].id, // Website Development
+      clientId: 'user-001',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 480,
+      totalPrice: 2400.0,
+      notes: 'Build company website with e-commerce',
+    },
+    {
+      serviceId: createdServices[8].id, // Website Development
+      clientId: 'user-007',
+      scheduledAt: nextWeek,
+      duration: 360,
+      totalPrice: 1800.0,
+      notes: 'Portfolio website for photographer',
+    },
+    // Tutoring services
+    {
+      serviceId: createdServices[14].id, // Math Tutoring
+      clientId: 'user-008',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 60,
+      totalPrice: 50.0,
+      notes: 'Help with algebra homework',
+    },
+    {
+      serviceId: createdServices[14].id, // Math Tutoring
+      clientId: 'user-009',
+      scheduledAt: tomorrow,
+      duration: 60,
+      totalPrice: 50.0,
+      notes: 'Prepare for calculus exam',
+    },
+    {
+      serviceId: createdServices[15].id, // Science Tutoring
+      clientId: 'user-010',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 90,
+      totalPrice: 67.5,
+      notes: 'Spanish conversation practice',
+    },
+    // Pet Care services
+    {
+      serviceId: createdServices[38].id, // Pet Sitting
+      clientId: 'user-001',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 120,
+      totalPrice: 60.0,
+      notes: 'Watch dog while on vacation',
+    },
+    {
+      serviceId: createdServices[38].id, // Pet Sitting
+      clientId: 'user-002',
+      scheduledAt: nextWeek,
+      duration: 120,
+      totalPrice: 60.0,
+      notes: 'Daily dog walking service',
+    },
+    // Auto services
+    {
+      serviceId: createdServices[10].id, // Car Repair & Maintenance
+      clientId: 'user-003',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 180,
+      totalPrice: 270.0,
+      notes: 'Brake pad replacement',
+    },
+    {
+      serviceId: createdServices[11].id, // Vehicle Diagnostics
+      clientId: 'user-004',
+      scheduledAt: lastWeek,
+      status: 'COMPLETED',
+      duration: 240,
+      totalPrice: 180.0,
+      notes: 'Full car diagnostics and maintenance',
+    },
+    // Event services
+    {
+      serviceId: createdServices[30].id, // Party Planning
+      clientId: 'user-005',
+      scheduledAt: lastMonth,
+      status: 'COMPLETED',
+      duration: 480,
+      totalPrice: 800.0,
+      notes: 'Birthday party for 25 guests',
+    },
+    {
+      serviceId: createdServices[31].id, // Wedding Coordination
+      clientId: 'user-006',
+      scheduledAt: nextWeek,
+      duration: 720,
+      totalPrice: 1200.0,
+      notes: 'Full wedding coordination service',
+    },
   ]
 
+  // Create bookings with proper service references
   for (const booking of bookingsData) {
     await prisma.booking.create({
-      data: booking,
+      data: {
+        serviceId: booking.serviceId,
+        clientId: booking.clientId,
+        scheduledAt: booking.scheduledAt,
+        status: booking.status || 'CONFIRMED',
+        duration: booking.duration,
+        totalPrice: booking.totalPrice,
+        notes: booking.notes,
+      },
     })
   }
 
@@ -994,7 +1216,7 @@ async function main() {
   console.log('  - 10 contractors with profiles')
   console.log('  - 40 services across all categories (2 per category)')
   console.log('  - Contractor availability schedules')
-  console.log('  - 2 sample bookings')
+  console.log('  - 24 sample bookings with realistic distribution')
 }
 
 main()

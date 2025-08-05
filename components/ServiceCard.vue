@@ -1,6 +1,6 @@
 <template>
   <div
-    class="card bg-base-100 shadow-lg transition-shadow duration-300 hover:shadow-xl"
+    class="card bg-base-200 shadow-lg transition-shadow duration-300 hover:shadow-xl"
   >
     <div class="card-body p-6">
       <!-- Service Header -->

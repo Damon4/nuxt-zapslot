@@ -1,8 +1,7 @@
 import { z } from 'zod'
-import { PrismaClient } from '@prisma/client'
-import { requireAuth } from '~/server/utils/auth'
+import { prisma } from '~/lib/prisma'
 
-const prisma = new PrismaClient()
+import { requireAuth } from '~/server/utils/auth'
 
 // Schema for validating the slot ID parameter
 const deleteSlotSchema = z.object({

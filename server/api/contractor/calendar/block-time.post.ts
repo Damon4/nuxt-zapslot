@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { requireAuth } from '~/server/utils/auth'
 import { z } from 'zod'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/lib/prisma'
 
 // Validation schema for blocking time slots
 const blockTimeSchema = z.object({

@@ -1,7 +1,6 @@
 import { z } from 'zod'
-import { PrismaClient, type Prisma } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import type { Prisma } from '@prisma/client'
+import { prisma } from '~/lib/prisma'
 
 const searchSchema = z.object({
   q: z.string().optional(),

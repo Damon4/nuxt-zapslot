@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
 import { requireAdmin } from '~/server/utils/auth'
-
-const prisma = new PrismaClient()
+import { prisma } from '~/lib/prisma'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)

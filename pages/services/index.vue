@@ -29,7 +29,7 @@
                 type="text"
                 placeholder="Web development, cleaning..."
                 class="input input-bordered"
-                @input="handleSearch"
+                @input="debouncedSearch"
               >
             </div>
 
@@ -46,10 +46,10 @@
                 <option value="">All Categories</option>
                 <option
                   v-for="category in categories"
-                  :key="category"
-                  :value="category"
+                  :key="category.id"
+                  :value="category.name"
                 >
-                  {{ category }}
+                  {{ category.name }}
                 </option>
               </select>
             </div>
@@ -95,7 +95,7 @@
 
       <!-- Services Grid -->
       <div
-        v-else-if="services.length > 0"
+        v-else-if="hasResults"
         class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
         <ServiceCard
@@ -123,10 +123,7 @@
       </div>
 
       <!-- Pagination -->
-      <div
-        v-if="pagination && pagination.pages > 1"
-        class="mt-8 flex justify-center"
-      >
+      <div v-if="hasMultiplePages" class="mt-8 flex justify-center">
         <div class="join">
           <button
             v-for="page in paginationPages"
@@ -144,169 +141,50 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { onMounted } from 'vue'
 
-// Notifications
-const { error: showError } = useNotifications()
+// Import custom composables
+const { categories } = useCategories()
+const {
+  services,
+  loading,
+  searchQuery,
+  selectedCategory,
+  maxPrice,
+  sortBy,
+  pagination,
+  paginationPages,
+  hasResults,
+  hasMultiplePages,
+  debouncedSearch,
+  handleFilterChange,
+  changePage,
+  clearFilters,
+} = useServicesSearch()
 
 definePageMeta({
   title: 'Browse Services',
   description: 'Find and book professional services from verified contractors',
 })
 
-// Types
-interface Service {
-  id: number
-  title: string
-  description: string
-  category: string
-  price: string | null
-  priceType: string
-  duration: number | null
-  availability: string
-  contractor: {
-    user: {
-      name: string
-      image: string | null
-    }
-  }
-  bookingsCount: number
-}
-
-interface Pagination {
-  page: number
-  limit: number
-  total: number
-  pages: number
-}
-
-// State
-const services = ref<Service[]>([])
-const loading = ref(false)
-const searchQuery = ref('')
-const selectedCategory = ref('')
-const maxPrice = ref('')
-const sortBy = ref('createdAt')
-const pagination = ref<Pagination | null>(null)
-
-// Categories for filter dropdown - updated to match actual database categories
-const categories = [
-  'Computer/Internet',
-  'Design/Creative',
-  'Cleaning Services',
-  'Home Repair and Maintenance',
-  'Beauty and Personal Care',
-  'Transportation',
-  'Education and Tutoring',
-  'Business and Professional Services',
-  'Event Services',
-  'Health and Wellness',
-]
-
-// Search and filter handlers
-let searchTimeout: NodeJS.Timeout
-
-const handleSearch = () => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    fetchServices()
-  }, 500)
-}
-
-const handleFilterChange = () => {
-  fetchServices()
-}
-
-const clearFilters = () => {
-  searchQuery.value = ''
-  selectedCategory.value = ''
-  maxPrice.value = ''
-  sortBy.value = 'createdAt'
-  fetchServices()
-}
-
-const changePage = (page: number) => {
-  fetchServices(page)
-}
-
-// Computed pagination pages
-const paginationPages = computed(() => {
-  if (!pagination.value) return []
-  const pages = []
-  const total = pagination.value.pages
-  const current = pagination.value.page
-
-  // Simple pagination: show up to 5 pages around current
-  const start = Math.max(1, current - 2)
-  const end = Math.min(total, start + 4)
-
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-
-  return pages
-})
-
-// Fetch services function
-const fetchServices = async (page = 1) => {
-  loading.value = true
-
-  try {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: '12',
-      sortBy: sortBy.value,
-    })
-
-    if (searchQuery.value) {
-      params.append('q', searchQuery.value)
-    }
-
-    if (selectedCategory.value) {
-      params.append('category', selectedCategory.value)
-    }
-
-    if (maxPrice.value) {
-      params.append('priceTo', maxPrice.value)
-    }
-
-    const response = await $fetch(`/api/services/search?${params}`)
-    services.value = response.services
-    pagination.value = response.pagination
-  } catch (error) {
-    console.error('Error fetching services:', error)
-    showError(
-      'Search Failed',
-      'Unable to load services. Please check your connection and try again.'
-    )
-  } finally {
-    loading.value = false
-  }
-}
-
-// Initialize
+// Initialize from URL parameters once
 onMounted(() => {
-  // Initialize filters from URL query parameters
   const route = useRoute()
 
   if (route.query.search) {
     searchQuery.value = route.query.search as string
   }
 
-  if (route.query.category) {
+  if (route.query.category && categories.value.length > 0) {
     const categoryId = parseInt(route.query.category as string)
-    // Map category ID to category name based on actual categories in database
-    const categoryMap: { [key: number]: string } = {
-      1: 'Home Repair and Maintenance',
-      2: 'Cleaning Services',
-      3: 'Computer/Internet', // This matches the actual category in DB for web development
-      4: 'Beauty and Personal Care',
-      5: 'Education and Tutoring',
-      6: 'Design/Creative', // This matches the actual category in DB
-      7: 'Transportation',
-      8: 'Event Services',
+    if (categoryId) {
+      const category = categories.value.find(
+        (cat: { id: number; name: string }) => cat.id === categoryId
+      )
+      if (category) {
+        selectedCategory.value = category.name
+      }
     }
-    selectedCategory.value = categoryMap[categoryId] || ''
   }
 
   if (route.query.priceTo) {
@@ -314,9 +192,7 @@ onMounted(() => {
   }
 
   if (route.query.sortBy) {
-    sortBy.value = route.query.sortBy as string
+    sortBy.value = route.query.sortBy as 'price' | 'createdAt' | 'title'
   }
-
-  fetchServices()
 })
 </script>
