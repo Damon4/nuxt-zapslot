@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
     where: {
       serviceId: Number(serviceId),
       status: {
-        in: ['PENDING', 'CONFIRMED'],
+        in: ['CONFIRMED'],
       },
     },
   })

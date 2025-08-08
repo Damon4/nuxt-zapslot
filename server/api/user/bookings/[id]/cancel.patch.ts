@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+  if (booking.status !== 'CONFIRMED') {
     throw createError({
       statusCode: 400,
       statusMessage: 'Cannot cancel this booking',

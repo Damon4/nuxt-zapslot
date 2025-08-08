@@ -46,9 +46,7 @@ export default defineEventHandler(async (event) => {
           gte: new Date(startDate),
           lte: new Date(endDate),
         },
-        status: {
-          in: ['PENDING', 'CONFIRMED'],
-        },
+        status: 'CONFIRMED',
       },
       select: {
         scheduledAt: true,

@@ -22,6 +22,12 @@ function startOfDay(d: Date) {
   return date
 }
 
+function endOfDay(d: Date) {
+  const date = new Date(d)
+  date.setHours(23, 59, 59, 999)
+  return date
+}
+
 export default defineEventHandler(async (event) => {
   const q = getQuery(event)
   let parsed: z.infer<typeof querySchema>
@@ -49,10 +55,37 @@ export default defineEventHandler(async (event) => {
     })
 
   const now = new Date()
-  const to = parsed.to ? new Date(parsed.to) : now
+  // Normalize query window to full-day boundaries for consistent inclusion
+  const to = parsed.to ? endOfDay(new Date(parsed.to)) : now
   const from = parsed.from
-    ? new Date(parsed.from)
-    : new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30) // default 30 days
+    ? startOfDay(new Date(parsed.from))
+    : startOfDay(new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30)) // default 30 days
+
+  if (from > to) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid date range: from must be before to',
+    })
+  }
+
+  // Guardrails: prevent excessive ranges that would create too many buckets
+  const MS_PER_DAY = 24 * 60 * 60 * 1000
+  const daySpan =
+    Math.floor(
+      (startOfDay(to).getTime() - startOfDay(from).getTime()) / MS_PER_DAY
+    ) + 1
+  if (parsed.interval === 'day' && daySpan > 200) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Date range too large for day interval (max 200 days)',
+    })
+  }
+  if (parsed.interval === 'week' && daySpan > 400) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Date range too large for week interval (max ~57 weeks)',
+    })
+  }
 
   // Fetch bookings within window
   const bookings = await prisma.booking.findMany({

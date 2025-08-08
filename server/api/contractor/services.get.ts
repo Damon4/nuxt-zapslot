@@ -63,6 +63,8 @@ export default defineEventHandler(async (event) => {
 
   if (method === 'POST') {
     // Create new service
+    // Required order: readBody() → auth check (Nuxt 4)
+    const body = await readBody(event)
     const session = await requireAuth(event)
 
     const contractor = await prisma.contractor.findUnique({
@@ -91,7 +93,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const body = await readBody(event)
     const validatedData = serviceSchema.parse(body)
 
     const service = await prisma.service.create({

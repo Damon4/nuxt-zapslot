@@ -90,7 +90,7 @@ export default defineEventHandler(async (event) => {
         },
         scheduledAt: scheduledDate,
         status: {
-          in: ['PENDING', 'CONFIRMED'],
+          in: ['CONFIRMED'],
         },
       },
     })

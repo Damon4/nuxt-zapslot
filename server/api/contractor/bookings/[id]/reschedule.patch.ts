@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
         },
         scheduledAt: newDate,
         status: {
-          in: ['PENDING', 'CONFIRMED'],
+          in: ['CONFIRMED'],
         },
         id: {
           not: booking.id, // Exclude current booking
@@ -146,8 +146,6 @@ export default defineEventHandler(async (event) => {
       where: { id: booking.id },
       data: {
         scheduledAt: newDate,
-        // Optionally reset status to PENDING for contractor confirmation
-        // status: 'PENDING',
       },
       include: {
         service: {

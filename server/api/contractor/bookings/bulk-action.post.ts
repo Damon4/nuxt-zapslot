@@ -50,15 +50,12 @@ export default defineEventHandler(async (event) => {
         return true
       }
 
-      // Specific validation based on action
-      if (action === 'CONFIRMED' && booking.status !== 'PENDING') {
-        return true
-      }
-
+      // Specific validation based on action, immediate-confirmation model
       if (action === 'COMPLETED' && booking.status !== 'CONFIRMED') {
         return true
       }
 
+      // action === 'CONFIRMED' is idempotent for already confirmed
       return false
     })
 
