@@ -117,6 +117,126 @@
               </div>
             </div>
           </div>
+
+          <!-- Reviews -->
+          <div class="card bg-base-200 mb-6 shadow-lg">
+            <div class="card-body">
+              <div class="mb-4 flex items-center justify-between">
+                <h2 class="card-title text-xl">
+                  <Icon name="tabler:star" class="text-warning h-6 w-6" />
+                  Reviews
+                </h2>
+                <div
+                  v-if="reviewsStats"
+                  class="flex items-center gap-2 text-sm"
+                >
+                  <StarRating
+                    :model-value="reviewsStats.averageRating"
+                    readonly
+                  />
+                  <span class="opacity-80"
+                    >{{ reviewsStats.averageRating.toFixed(1) }} •
+                    {{ reviewsStats.reviewsCount }} reviews</span
+                  >
+                </div>
+              </div>
+
+              <div v-if="reviewsLoading" class="flex items-center gap-2">
+                <span class="loading loading-spinner loading-sm" /> Loading
+                reviews...
+              </div>
+
+              <div v-else>
+                <div v-if="reviews.length === 0" class="text-sm opacity-70">
+                  No reviews yet.
+                </div>
+
+                <ul v-else class="space-y-4">
+                  <li
+                    v-for="rev in reviews"
+                    :key="rev.id"
+                    class="bg-base-100 rounded-lg p-4"
+                  >
+                    <div class="mb-1 flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="avatar">
+                          <div class="w-8 rounded-full">
+                            <img
+                              v-if="rev.client.image"
+                              :src="rev.client.image"
+                              :alt="rev.client.name"
+                            >
+                            <div
+                              v-else
+                              class="bg-primary text-primary-content flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold"
+                            >
+                              {{ getInitials(rev.client.name) }}
+                            </div>
+                          </div>
+                        </div>
+                        <span class="text-sm font-medium">{{
+                          rev.client.name
+                        }}</span>
+                      </div>
+                      <div class="text-sm">
+                        <StarRating :model-value="rev.rating" readonly />
+                      </div>
+                    </div>
+                    <p v-if="rev.comment" class="text-sm">{{ rev.comment }}</p>
+                    <div class="mt-1 text-xs opacity-60">
+                      <NuxtTime :datetime="rev.createdAt" />
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Add Review Form (simple) -->
+              <div
+                v-if="isAuthenticated"
+                class="border-base-300 mt-6 border-t pt-4"
+              >
+                <h3 class="mb-4 text-sm font-semibold">Leave a review</h3>
+                <div class="space-y-4">
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Rating</span>
+                    </label>
+                    <StarRating v-model="newReview.rating" show-text />
+                  </div>
+                  <div>
+                    <label class="label">
+                      <span class="label-text">Comment (optional)</span>
+                    </label>
+                    <textarea
+                      v-model="newReview.comment"
+                      maxlength="1000"
+                      placeholder="Share your experience with this service..."
+                      class="textarea textarea-bordered w-full"
+                      rows="3"
+                    />
+                  </div>
+                  <button
+                    class="btn btn-primary"
+                    :disabled="submittingReview || newReview.rating === 0"
+                    @click="submitReview"
+                  >
+                    <span
+                      v-if="submittingReview"
+                      class="loading loading-spinner loading-sm"
+                    />
+                    <span v-else>Submit Review</span>
+                  </button>
+                </div>
+                <div v-if="reviewError" class="alert alert-error mt-3 text-sm">
+                  <Icon name="tabler:alert-circle" />
+                  <span>{{ reviewError }}</span>
+                </div>
+              </div>
+              <div v-else class="mt-6 text-sm opacity-70">
+                Sign in to leave a review.
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Sidebar -->
@@ -322,6 +442,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
+const { isAuthenticated } = useAuth()
 
 // Get service ID from route
 const route = useRoute()
@@ -356,6 +477,7 @@ interface Service {
     }
   }
   bookingsCount: number
+  reviewsCount?: number
 }
 
 interface AvailableSlot {
@@ -402,6 +524,75 @@ const bookingLoading = ref(false)
 const bookingDate = ref('')
 const bookingTime = ref('')
 const bookingNotes = ref('')
+
+// Reviews state
+interface ReviewItem {
+  id: number
+  rating: number
+  comment?: string | null
+  createdAt: string
+  client: { name: string; image: string | null }
+}
+const reviews = ref<ReviewItem[]>([])
+const reviewsStats = ref<{
+  averageRating: number
+  reviewsCount: number
+} | null>(null)
+const reviewsLoading = ref(true)
+const submittingReview = ref(false)
+const reviewError = ref('')
+const newReview = ref<{ rating: number; comment: string }>({
+  rating: 0,
+  comment: '',
+})
+
+const loadReviews = async () => {
+  try {
+    reviewsLoading.value = true
+    const res = await $fetch<{
+      reviews: ReviewItem[]
+      stats: { averageRating: number; reviewsCount: number }
+    }>(`/api/services/${serviceId}/reviews`)
+    reviews.value = res.reviews
+    reviewsStats.value = res.stats
+  } catch {
+    // swallow for now
+  } finally {
+    reviewsLoading.value = false
+  }
+}
+
+onMounted(() => {
+  // existing onMounted logic...
+  // load reviews
+  loadReviews()
+})
+
+const submitReview = async () => {
+  reviewError.value = ''
+  if (newReview.value.rating === 0) return
+  submittingReview.value = true
+  try {
+    await $fetch<{ review: { id: number } }>(
+      `/api/services/${serviceId}/reviews`,
+      {
+        method: 'POST',
+        body: {
+          rating: newReview.value.rating,
+          comment: newReview.value.comment || undefined,
+        },
+      }
+    )
+    newReview.value = { rating: 0, comment: '' }
+    await loadReviews()
+    success('Review submitted', 'Thank you for your feedback!')
+  } catch (err: unknown) {
+    const e = err as { data?: { message?: string } }
+    reviewError.value = e?.data?.message || 'Failed to submit review'
+  } finally {
+    submittingReview.value = false
+  }
+}
 
 // Client-side minimum date to prevent hydration mismatch
 const minDate = ref('')

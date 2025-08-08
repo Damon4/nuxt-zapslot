@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
         },
       },
       _count: {
-        select: { bookings: true },
+        select: { bookings: true, reviews: true },
       },
     },
   })
@@ -46,6 +46,7 @@ export default defineEventHandler(async (event) => {
     service: {
       ...service,
       bookingsCount: service._count.bookings,
+      reviewsCount: service._count.reviews,
     },
   }
 })

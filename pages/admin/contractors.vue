@@ -110,7 +110,7 @@
                 </p>
                 <p class="text-base-content/50 text-xs">
                   Applied:
-                  {{ useDateFormat().formatDate(contractor.createdAt) }}
+                  <NuxtTime :datetime="contractor.createdAt" />
                 </p>
               </div>
             </div>
