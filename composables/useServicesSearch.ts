@@ -7,7 +7,8 @@ export interface ServiceSearchParams {
   priceTo?: number
   availability?: string
   contractorId?: number
-  sortBy?: 'price' | 'createdAt' | 'title'
+  minRating?: number
+  sortBy?: 'price' | 'createdAt' | 'title' | 'rating'
   page?: number
   limit?: number
 }
@@ -28,6 +29,8 @@ export interface Service {
     }
   }
   bookingsCount: number
+  averageRating: number
+  reviewCount: number
 }
 
 export interface Pagination {
@@ -47,7 +50,8 @@ export const useServicesSearch = () => {
   const searchQuery = ref('')
   const selectedCategory = ref('')
   const maxPrice = ref('')
-  const sortBy = ref<'price' | 'createdAt' | 'title'>('createdAt')
+  const minRating = ref('')
+  const sortBy = ref<'price' | 'createdAt' | 'title' | 'rating'>('createdAt')
   const currentPage = ref(1)
 
   // Build search params for useFetch
@@ -70,6 +74,13 @@ export const useServicesSearch = () => {
       const priceTo = parseFloat(maxPrice.value)
       if (!isNaN(priceTo)) {
         params.append('priceTo', priceTo.toString())
+      }
+    }
+
+    if (minRating.value) {
+      const rating = parseFloat(minRating.value)
+      if (!isNaN(rating) && rating >= 1 && rating <= 5) {
+        params.append('minRating', rating.toString())
       }
     }
 
@@ -118,6 +129,7 @@ export const useServicesSearch = () => {
     searchQuery.value = ''
     selectedCategory.value = ''
     maxPrice.value = ''
+    minRating.value = ''
     sortBy.value = 'createdAt'
     currentPage.value = 1
   }
@@ -156,6 +168,7 @@ export const useServicesSearch = () => {
     searchQuery,
     selectedCategory,
     maxPrice,
+    minRating,
     sortBy,
     currentPage: readonly(currentPage),
 

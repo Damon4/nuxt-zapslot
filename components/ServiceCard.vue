@@ -35,6 +35,23 @@
 
       <!-- Service Details -->
       <div class="mb-4 grid grid-cols-2 gap-3">
+        <!-- Rating -->
+        <div class="flex items-center gap-2">
+          <Icon name="tabler:star-filled" class="text-warning h-4 w-4" />
+          <span class="text-sm">
+            <span v-if="service.reviewCount > 0" class="font-semibold">
+              {{ service.averageRating.toFixed(1) }}
+            </span>
+            <span v-else class="text-base-content/70">No reviews</span>
+            <span
+              v-if="service.reviewCount > 0"
+              class="text-base-content/70 ml-1"
+            >
+              ({{ service.reviewCount }})
+            </span>
+          </span>
+        </div>
+
         <!-- Price -->
         <div class="flex items-center gap-2">
           <Icon name="tabler:currency-dollar" class="text-success h-4 w-4" />
@@ -55,14 +72,6 @@
             }}</span>
             <span v-else class="text-base-content/70">Flexible</span>
           </span>
-        </div>
-
-        <!-- Availability -->
-        <div class="flex items-center gap-2">
-          <Icon name="tabler:calendar" class="text-warning h-4 w-4" />
-          <span class="text-sm">{{
-            formatAvailability(service.availability)
-          }}</span>
         </div>
 
         <!-- Bookings Count -->
@@ -113,6 +122,8 @@ interface ServiceProps {
       }
     }
     bookingsCount: number
+    averageRating: number
+    reviewCount: number
   }
 }
 
@@ -137,17 +148,6 @@ const formatDuration = (minutes: number): string => {
     return `${hours}h`
   }
   return `${hours}h ${remainingMinutes}m`
-}
-
-const formatAvailability = (availability: string): string => {
-  const availabilityMap: Record<string, string> = {
-    WEEKDAYS: 'Weekdays',
-    WEEKENDS: 'Weekends',
-    MORNINGS: 'Mornings',
-    EVENINGS: 'Evenings',
-    FLEXIBLE: 'Flexible',
-  }
-  return availabilityMap[availability] || availability
 }
 </script>
 
