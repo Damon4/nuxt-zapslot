@@ -331,6 +331,7 @@ model Review {
 
 - `q` - text search by title and description
 - `category` - filter by category
+- `location` - filter by contractor service area (free-text contains)
 - `priceFrom`, `priceTo` - price range
 - `availability` - availability
 - `contractorId` - services of a specific contractor
@@ -452,25 +453,121 @@ CREATE INDEX idx_review_client ON review(clientId);
   - Availability multi-select filters (weekdays, weekends, mornings, evenings, flexible)
   - Geographic location-based search using contractor.serviceArea
   - Contractor rating (minRating) and review count (minReviewCount) filters
-  - Advanced search suggestions endpoint with autocomplete (titles, categories, locations)
+  - Advanced search suggestions endpoint with autocomplete (titles only; categories and locations intentionally removed for clarity)
   - Saved searches UI + local history (localStorage, last 10)
   - Pagination preserved with new filters; sorting includes Highest Rated
 
 Technical highlights:
 - Extended /api/services/search with location, minReviewCount, multi-availability support and safe Prisma typing
-- Added /api/services/suggestions for lightweight autocomplete
+- Added /api/services/suggestions for lightweight autocomplete (returns titles only; supports default suggestions on focus)
 - Updated composable useServicesSearch to manage new filters, suggestions, debounce, and saved searches
 - Enhanced /pages/services with new UI controls and dropdown suggestions
 
+<!-- Inlined Stage 10 plan below; standalone docs/analytics-plan.md removed -->
+
+<a id="stage-10-analytics-dashboard"></a>
 **Stage 10: Analytics Dashboard 📋 PLANNED**
-- **Contractor analytics dashboard**
-  - Booking statistics and trends visualization
-  - Revenue tracking and projections
-  - Service performance metrics
-  - Client booking patterns analysis
-  - Monthly/yearly performance reports
-  - Peak time identification and optimization
-  - Pricing optimization suggestions
+
+#### Goals
+- Provide contractors with actionable insights: bookings, revenue, service performance.
+- Start with read-only metrics; expand to trends and comparisons later.
+
+#### MVP Metrics
+- Totals (30d and all-time):
+  - Bookings count (CONFIRMED/COMPLETED)
+  - Revenue (sum of booking.totalPrice where not null)
+  - Cancellations count
+- Top services by:
+  - Bookings count
+  - Revenue
+  - Average rating (with minimum reviews threshold)
+- Trends (last 12 weeks): weekly bookings and revenue
+
+#### API Endpoints
+- GET /api/contractor/analytics/summary
+  - Query: range = thisWeek | last7d | last14d | last30d | last90d
+  - Output: totals (period + allTime), per-service breakdown (top 5), optional sparkline meta
+- GET /api/contractor/analytics/trends
+  - Query: interval = day | week, from = ISO, to = ISO
+  - Output: time series for bookings, cancellations, revenue
+
+Notes:
+- Read body first if we later switch to POST; otherwise query params for GET.
+- Require auth and contractor ownership checks.
+
+#### Data Model Considerations
+- Use existing Booking and Review tables.
+- For performance, consider simple materialized views later (out of scope for MVP).
+
+#### Periods & Intervals
+Supported ranges and their aggregation in UI/API:
+- This week: Monday of the current week up to today (inclusive)
+- Last 7 days: rolling last 7 days
+- Last 14 days: rolling last 14 days
+- Last 30 days: aggregated by week (W1–W5)
+- Last 90 days: aggregated by week (W1–W13)
+
+Interval selection used by UI:
+- day: thisWeek, last7d, last14d
+- week: last30d, last90d
+
+Notes:
+- "This week" is calendar-based (Mon→today), not "last 7 days".
+- Weekly aggregation shows labels as W1, W2, … with tooltips spanning the week range.
+
+#### UI (Nuxt + DaisyUI)
+- Page: /contractor/analytics
+- Components:
+  - Stats cards (bookings, revenue, cancellations)
+  - Top services table
+  - Charts: area chart wrapper (ClientOnly) with x/y formatters
+
+Key components (implemented):
+- components/charts/BaseAreaChart.vue — generic area chart wrapper with props: data, categories, height, x/y labels, xFormatter, yFormatter; wrapped in ClientOnly to avoid SSR hydration issues
+- components/charts/AnalyticsAreaCard.vue — card shell with loading/error states and demo-data fallback
+
+Formatters:
+- Bookings y-formatter: "N booking(s)" with pluralization
+- Revenue y-formatter: USD currency using en-US locale
+
+Page wiring (pages/contractor/analytics.vue):
+- Computes range and chartInterval based on selected range
+- Fetches summary and trends using the query params above
+- Generates demo data when needed:
+  - thisWeek (day): Mon→today
+  - last7d (day): last 7 daily points
+  - last14d (day): last 14 daily points
+  - last30d (week): 5 weekly points
+  - last90d (week): 13 weekly points
+ - x-axis labels: day (Mon, Tue, …) or week (W1, W2, … with week-range tooltip)
+
+#### Implementation Steps
+1) Backend: add summary endpoint with Prisma aggregations.
+2) Frontend: basic page with stats cards and top services table.
+3) Trends endpoint + simple chart or table.
+4) Polish, empty states, loading skeletons, tests.
+
+#### Backend Guidelines
+- Nuxt 4 API: For GET we use query; if switching to POST later, always read body before auth
+- Single Prisma client instance
+- Protect routes with requireAuth and contractor ownership checks
+- Handle Zod errors explicitly where validation is applied
+
+#### Testing
+- Playwright MCP flows for contractor viewing analytics.
+- Seed fixtures to cover high/low cases.
+
+Testing checklist:
+- Switch each period and verify labels:
+  - This week: Mon→today
+  - Last 7 days: 7 day ticks, rolling
+  - Last 14 days: 14 day ticks, rolling
+  - Last 30/90 days: weekly ticks W1… with week-range tooltip
+- Verify y-axis formatters (bookings plural, USD currency)
+- Verify charts render only on client (ClientOnly) and no lag
+
+#### Future
+- Conversion funnel, cohort analysis, time-to-booking, peak times heatmap.
 
 ### 🔮 Future Stages
 - Email notification system for booking updates
@@ -587,16 +684,16 @@ model TimeSlot {
 ## 9. Known Issues & Technical Debt
 
 ### Current Development Focus
-- **Stage 7**: Calendar integration with drag-and-drop functionality
-- **Testing**: Comprehensive Playwright MCP testing across all features
-- **Performance**: Database query optimization and caching strategies
-- **Documentation**: API documentation and user guides
+- **Stage 10**: Analytics dashboard planning and foundation
+- **Testing**: Playwright MCP tests for advanced search/suggestions UX
+- **Performance**: Search query optimization and caching strategies
+- **Documentation**: Update API docs and analytics plan
 
 ### Remaining High-Priority Tasks
-- Complete calendar integration with advanced scheduling
+- Kick off analytics dashboard (contractor KPIs)
 - Real-time notifications (WebSocket/SSE implementation)
 - Email notification system for booking updates
-- Review and rating system after completed bookings
+- Calendar drag-and-drop scheduling (future enhancement)
 
 ### Future Technical Improvements
 - Advanced scheduling calendar component with conflict detection
@@ -868,5 +965,6 @@ gh pr create --title "✅ Feature Complete" --body-file pr-body.md --base main
 ---
 
 *Last Updated: August 4, 2025*
-*Current Status: Stage 7 Completed, Stage 8 Planning*
-*Branch: feature/stage-7-calendar-integration*
+*Last Updated: August 8, 2025*
+*Current Status: Stage 9 Completed*
+*Branch: dev*

@@ -25,13 +25,18 @@ This comprehensive guide contains:
 
 - **✅ Stage 8 Completed**: Review and rating system with filtering and sorting
 - **✅ Stage 7 Completed**: Calendar integration with enhanced slot validation
-- **🔄 Stage 9 Next**: Advanced search & filtering capabilities
-- **📋 Stage 10 Planned**: Analytics dashboard for contractors
+- **✅ Stage 9 Completed**: Advanced service search & filtering (catalog)
+- **✅ Analytics Dashboard (contractor)**: Charts with period handling
+	- This week = Monday → today
+	- Last 7/14 days = rolling daily
+	- Last 30/90 days = weekly aggregation
 - **🏗️ Platform**: Production-ready with comprehensive testing and quality features
 
 ## 🔗 Key Links
 
 - **[Main Documentation](./services-plan.md)** - Complete implementation guide
+- **[Analytics Dashboard](./services-plan.md#stage-10-analytics-dashboard)** - Periods, APIs, and chart wiring
+- **[Stage 9 Report](./stage-9-completion-report.md)** - Advanced search & filtering
 - **[Stage Reports](./stage-*-completion-report.md)** - Development progress records
 - **[GitHub Repository](https://github.com/Damon4/nuxt-zapslot)** - Source code
 
