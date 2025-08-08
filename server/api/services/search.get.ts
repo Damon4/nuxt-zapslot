@@ -9,7 +9,10 @@ const searchSchema = z.object({
   priceTo: z.number().optional(),
   availability: z.string().optional(),
   contractorId: z.number().optional(),
-  sortBy: z.enum(['price', 'createdAt', 'title']).default('createdAt'),
+  minRating: z.number().min(1).max(5).optional(),
+  sortBy: z
+    .enum(['price', 'createdAt', 'title', 'rating'])
+    .default('createdAt'),
   page: z.number().default(1),
   limit: z.number().max(50).default(20),
 })
@@ -21,6 +24,7 @@ export default defineEventHandler(async (event) => {
     priceFrom: query.priceFrom ? Number(query.priceFrom) : undefined,
     priceTo: query.priceTo ? Number(query.priceTo) : undefined,
     contractorId: query.contractorId ? Number(query.contractorId) : undefined,
+    minRating: query.minRating ? Number(query.minRating) : undefined,
     page: query.page ? Number(query.page) : 1,
     limit: query.limit ? Number(query.limit) : 20,
   })
@@ -32,6 +36,7 @@ export default defineEventHandler(async (event) => {
     priceTo,
     availability,
     contractorId,
+    minRating,
     sortBy,
     page,
     limit,
@@ -77,6 +82,9 @@ export default defineEventHandler(async (event) => {
     orderBy = { price: 'asc' }
   } else if (sortBy === 'title') {
     orderBy = { title: 'asc' }
+  } else if (sortBy === 'rating') {
+    // We'll sort by average rating in the response processing
+    orderBy = { createdAt: 'desc' }
   }
 
   const [services, total] = await Promise.all([
@@ -93,8 +101,16 @@ export default defineEventHandler(async (event) => {
             },
           },
         },
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
         _count: {
-          select: { bookings: true },
+          select: {
+            bookings: true,
+            reviews: true,
+          },
         },
       },
       orderBy,
@@ -104,16 +120,47 @@ export default defineEventHandler(async (event) => {
     prisma.service.count({ where }),
   ])
 
-  return {
-    services: services.map((service) => ({
+  // Process services to add rating information
+  let processedServices = services.map((service) => {
+    const ratings = service.reviews.map((r) => r.rating)
+    const averageRating =
+      ratings.length > 0
+        ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length
+        : 0
+    const reviewCount = service._count.reviews
+
+    return {
       ...service,
       bookingsCount: service._count.bookings,
-    })),
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal
+      reviewCount,
+      reviews: undefined, // Remove reviews from response for cleaner data
+    }
+  })
+
+  // Filter by minimum rating if specified
+  if (minRating !== undefined) {
+    processedServices = processedServices.filter(
+      (service) => service.averageRating >= minRating
+    )
+  }
+
+  // Sort by rating if requested
+  if (sortBy === 'rating') {
+    processedServices.sort((a, b) => b.averageRating - a.averageRating)
+  }
+
+  // Recalculate pagination if we filtered by rating
+  const filteredTotal =
+    minRating !== undefined ? processedServices.length : total
+
+  return {
+    services: processedServices,
     pagination: {
       page,
       limit,
-      total,
-      pages: Math.ceil(total / limit),
+      total: filteredTotal,
+      pages: Math.ceil(filteredTotal / limit),
     },
   }
 })

@@ -18,7 +18,7 @@
     <div class="container mx-auto px-4 py-8">
       <div class="card bg-base-200 mb-8 shadow-lg">
         <div class="card-body">
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
             <!-- Search Input -->
             <div class="form-control">
               <label class="label">
@@ -68,6 +68,24 @@
               >
             </div>
 
+            <!-- Rating Filter -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Min Rating</span>
+              </label>
+              <select
+                v-model="minRating"
+                class="select select-bordered"
+                @change="handleFilterChange"
+              >
+                <option value="">Any Rating</option>
+                <option value="4">4+ Stars</option>
+                <option value="3">3+ Stars</option>
+                <option value="2">2+ Stars</option>
+                <option value="1">1+ Stars</option>
+              </select>
+            </div>
+
             <!-- Sort By -->
             <div class="form-control">
               <label class="label">
@@ -79,6 +97,7 @@
                 @change="handleFilterChange"
               >
                 <option value="createdAt">Newest First</option>
+                <option value="rating">Highest Rated</option>
                 <option value="price">Price: Low to High</option>
                 <option value="title">Alphabetical</option>
               </select>
@@ -151,6 +170,7 @@ const {
   searchQuery,
   selectedCategory,
   maxPrice,
+  minRating,
   sortBy,
   pagination,
   paginationPages,
@@ -191,8 +211,16 @@ onMounted(() => {
     maxPrice.value = route.query.priceTo as string
   }
 
+  if (route.query.minRating) {
+    minRating.value = route.query.minRating as string
+  }
+
   if (route.query.sortBy) {
-    sortBy.value = route.query.sortBy as 'price' | 'createdAt' | 'title'
+    sortBy.value = route.query.sortBy as
+      | 'price'
+      | 'createdAt'
+      | 'title'
+      | 'rating'
   }
 })
 </script>
