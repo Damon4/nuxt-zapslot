@@ -12,7 +12,7 @@ const contractorUpdateSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    // CRITICAL: Operation order is crucial in Nuxt 3!
+    // CRITICAL: Operation order is crucial in Nuxt 4!
     // readBody() must be called before requireAuth() for proper functionality
     const body = await readBody(event)
 

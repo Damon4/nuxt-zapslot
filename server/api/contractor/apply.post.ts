@@ -12,7 +12,7 @@ const contractorApplicationSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    // CRITICAL: Operation order is crucial in Nuxt 3!
+    // CRITICAL: Operation order is crucial in Nuxt 4!
     // readBody() must be called before requireAuth() as requireAuth()
     // may modify the event object state making the request body unavailable
     const body = await readBody(event)

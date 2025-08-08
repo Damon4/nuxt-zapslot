@@ -2,11 +2,11 @@
 
 ## 🎯 Project Context
 
-ZapSlot is a comprehensive service booking platform built with Nuxt 3, featuring contractor management, service booking, calendar integration, and admin moderation. The project uses TypeScript, Prisma ORM with PostgreSQL, and follows modern development practices.
+ZapSlot is a comprehensive service booking platform built with Nuxt 4, featuring contractor management, service booking, calendar integration, and admin moderation. The project uses TypeScript, Prisma ORM with PostgreSQL, and follows modern development practices.
 
 ## 📋 Core Technologies
 
-- **Framework**: Nuxt 3 with TypeScript
+- **Framework**: Nuxt 4 with TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **UI**: DaisyUI with Tailwind CSS
 - **Auth**: Custom authentication system
@@ -19,7 +19,7 @@ ZapSlot is a comprehensive service booking platform built with Nuxt 3, featuring
 
 **⚠️ CRITICAL: Request Body Reading Order**
 
-When working with Nuxt 3 API endpoints, **always read request body FIRST**:
+When working with Nuxt 4 API endpoints, **always read request body FIRST**:
 
 ```typescript
 export default defineEventHandler(async (event) => {

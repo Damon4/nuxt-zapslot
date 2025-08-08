@@ -7,7 +7,7 @@
 [![Better Auth](https://img.shields.io/badge/Better%20Auth-1.x-FF6B6B?style=flat)](https://www.better-auth.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A modern, full-stack Nuxt 3 application for appointment booking with enterprise-grade authentication and user management.
+A modern, full-stack Nuxt 4 application for appointment booking with enterprise-grade authentication and user management.
 
 ## ✨ Features
 
@@ -38,13 +38,13 @@ A modern, full-stack Nuxt 3 application for appointment booking with enterprise-
 ### 🔧 Technical Excellence
 - **Type Safety**: Full TypeScript support across client and server
 - **PostgreSQL Database**: Robust data persistence with Prisma ORM
-- **Performance**: Optimized for speed with Nuxt 3's latest features
+- **Performance**: Optimized for speed with Nuxt 4's latest features
 - **Developer Tools**: ESLint, Prettier, Husky for code quality
 - **Testing**: Comprehensive Playwright MCP testing coverage
 
 ## 🏗️ Tech Stack
 
-- **Frontend**: Nuxt 3, Vue 3, TypeScript
+- **Frontend**: Nuxt 4, Vue 3, TypeScript
 - **Styling**: Tailwind CSS v4, DaisyUI
 - **Authentication**: Better Auth with GitHub OAuth
 - **Database**: PostgreSQL with Prisma ORM
@@ -480,7 +480,7 @@ zapslot/
 - [Development Guidelines](docs/development-guidelines.md) - Essential patterns and best practices for this project
 
 ### 🌐 External Documentation
-- [Nuxt 3 Documentation](https://nuxt.com/docs/getting-started/introduction)
+- [Nuxt 4 Documentation](https://nuxt.com/docs/getting-started/introduction)
 - [Better Auth Documentation](https://www.better-auth.com/docs/introduction)
 - [Prisma Documentation](https://www.prisma.io/docs/)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
@@ -492,4 +492,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Built with ❤️ using Nuxt 3 and modern web technologies.
+Built with ❤️ using Nuxt 4 and modern web technologies.

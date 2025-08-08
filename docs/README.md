@@ -37,7 +37,7 @@ This comprehensive guide contains:
 
 ## Technical Stack
 
-- **Frontend**: Nuxt 3, Vue 3, TypeScript, TailwindCSS, DaisyUI
+- **Frontend**: Nuxt 4, Vue 3, TypeScript, TailwindCSS, DaisyUI
 - **Backend**: Nuxt Server API, Prisma ORM, PostgreSQL
 - **Authentication**: Better Auth with GitHub OAuth
 - **Testing**: Playwright MCP for comprehensive browser testing

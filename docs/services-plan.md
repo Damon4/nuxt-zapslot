@@ -3,7 +3,7 @@
 
 ## 🎯 System Overview
 
-ZapSlot is a comprehensive service booking platform built with Nuxt 3, featuring contractor management, service booking, calendar integration, and admin moderation. The platform provides immediate booking confirmation and real-time availability management for seamless user experience.
+ZapSlot is a comprehensive service booking platform built with Nuxt 4, featuring contractor management, service booking, calendar integration, and admin moderation. The platform provides immediate booking confirmation and real-time availability management for seamless user experience.
 
 ### Key Features
 
@@ -602,7 +602,7 @@ model TimeSlot {
 ## 10. System Architecture & Technical Stack
 
 ### Core Technologies
-- **Framework**: Nuxt 3 with TypeScript
+- **Framework**: Nuxt 4 with TypeScript
 - **Database**: PostgreSQL with Prisma ORM
 - **UI**: DaisyUI with Tailwind CSS
 - **Auth**: Custom authentication system with GitHub OAuth
@@ -676,7 +676,7 @@ server/api/
 ### Critical Development Rules
 
 **⚠️ IMPORTANT: Request Body Reading Order**
-When working with Nuxt 3 API endpoints, **always read request body FIRST**:
+When working with Nuxt 4 API endpoints, **always read request body FIRST**:
 
 ```typescript
 export default defineEventHandler(async (event) => {

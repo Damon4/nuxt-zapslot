@@ -2,7 +2,7 @@
   "name": "zapslot",
   "private": true,
   "type": "module",
-  "description": "Modern appointment booking platform built with Nuxt 3, Better Auth, and Prisma",
+  "description": "Modern appointment booking platform built with Nuxt 4, Better Auth, and Prisma",
   "scripts": {
     "build": "tsx scripts/build-with-migrations.ts",
     "build:simple": "nuxt build",
