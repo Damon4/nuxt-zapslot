@@ -976,7 +976,7 @@ async function main() {
   const bookingsData = [
     // Popular services with more bookings
     {
-      serviceId: createdServices[2].id, // Deep House Cleaning
+      serviceId: createdServices[2]!.id, // Deep House Cleaning
       clientId: 'user-001',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -985,7 +985,7 @@ async function main() {
       notes: 'Full house deep cleaning before guests arrive',
     },
     {
-      serviceId: createdServices[2].id, // Deep House Cleaning
+      serviceId: createdServices[2]!.id, // Deep House Cleaning
       clientId: 'user-002',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -994,7 +994,7 @@ async function main() {
       notes: 'Monthly deep cleaning service',
     },
     {
-      serviceId: createdServices[6].id, // Interior Design Consultation
+      serviceId: createdServices[6]!.id, // Interior Design Consultation
       clientId: 'user-003',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1003,7 +1003,7 @@ async function main() {
       notes: 'Need consultation for living room redesign',
     },
     {
-      serviceId: createdServices[6].id, // Interior Design Consultation
+      serviceId: createdServices[6]!.id, // Interior Design Consultation
       clientId: 'user-004',
       scheduledAt: nextWeek,
       duration: 120,
@@ -1011,7 +1011,7 @@ async function main() {
       notes: 'Bedroom makeover consultation',
     },
     {
-      serviceId: createdServices[6].id, // Interior Design Consultation
+      serviceId: createdServices[6]!.id, // Interior Design Consultation
       clientId: 'user-005',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1021,7 +1021,7 @@ async function main() {
     },
     // Electrical services (popular)
     {
-      serviceId: createdServices[0].id, // Electrical Installation & Repair
+      serviceId: createdServices[0]!.id, // Electrical Installation & Repair
       clientId: 'user-002',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1030,7 +1030,7 @@ async function main() {
       notes: 'Install new outlets in garage',
     },
     {
-      serviceId: createdServices[0].id, // Electrical Installation & Repair
+      serviceId: createdServices[0]!.id, // Electrical Installation & Repair
       clientId: 'user-003',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1039,7 +1039,7 @@ async function main() {
       notes: 'Upgrade electrical panel',
     },
     {
-      serviceId: createdServices[1].id, // Emergency Electrical Services
+      serviceId: createdServices[1]!.id, // Emergency Electrical Services
       clientId: 'user-004',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1049,7 +1049,7 @@ async function main() {
     },
     // Handyman services (very popular)
     {
-      serviceId: createdServices[28].id, // Handyman Services
+      serviceId: createdServices[28]!.id, // Handyman Services
       clientId: 'user-001',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1058,7 +1058,7 @@ async function main() {
       notes: 'Fix squeaky door hinges',
     },
     {
-      serviceId: createdServices[28].id, // Handyman Services
+      serviceId: createdServices[28]!.id, // Handyman Services
       clientId: 'user-002',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1067,7 +1067,7 @@ async function main() {
       notes: 'Assemble IKEA furniture',
     },
     {
-      serviceId: createdServices[28].id, // Handyman Services
+      serviceId: createdServices[28]!.id, // Handyman Services
       clientId: 'user-003',
       scheduledAt: tomorrow,
       duration: 90,
@@ -1075,7 +1075,7 @@ async function main() {
       notes: 'Mount TV on wall',
     },
     {
-      serviceId: createdServices[28].id, // Handyman Services
+      serviceId: createdServices[28]!.id, // Handyman Services
       clientId: 'user-005',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1084,7 +1084,7 @@ async function main() {
       notes: 'Fix loose cabinet handles',
     },
     {
-      serviceId: createdServices[28].id, // Handyman Services
+      serviceId: createdServices[28]!.id, // Handyman Services
       clientId: 'user-006',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1094,7 +1094,7 @@ async function main() {
     },
     // Website Development (high-value service)
     {
-      serviceId: createdServices[8].id, // Website Development
+      serviceId: createdServices[8]!.id, // Website Development
       clientId: 'user-001',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1103,7 +1103,7 @@ async function main() {
       notes: 'Build company website with e-commerce',
     },
     {
-      serviceId: createdServices[8].id, // Website Development
+      serviceId: createdServices[8]!.id, // Website Development
       clientId: 'user-007',
       scheduledAt: nextWeek,
       duration: 360,
@@ -1112,7 +1112,7 @@ async function main() {
     },
     // Tutoring services
     {
-      serviceId: createdServices[14].id, // Math Tutoring
+      serviceId: createdServices[14]!.id, // Math Tutoring
       clientId: 'user-008',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1121,7 +1121,7 @@ async function main() {
       notes: 'Help with algebra homework',
     },
     {
-      serviceId: createdServices[14].id, // Math Tutoring
+      serviceId: createdServices[14]!.id, // Math Tutoring
       clientId: 'user-009',
       scheduledAt: tomorrow,
       duration: 60,
@@ -1129,7 +1129,7 @@ async function main() {
       notes: 'Prepare for calculus exam',
     },
     {
-      serviceId: createdServices[15].id, // Science Tutoring
+      serviceId: createdServices[15]!.id, // Science Tutoring
       clientId: 'user-010',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1139,7 +1139,7 @@ async function main() {
     },
     // Pet Care services
     {
-      serviceId: createdServices[38].id, // Pet Sitting
+      serviceId: createdServices[38]!.id, // Pet Sitting
       clientId: 'user-001',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1148,7 +1148,7 @@ async function main() {
       notes: 'Watch dog while on vacation',
     },
     {
-      serviceId: createdServices[38].id, // Pet Sitting
+      serviceId: createdServices[38]!.id, // Pet Sitting
       clientId: 'user-002',
       scheduledAt: nextWeek,
       duration: 120,
@@ -1157,7 +1157,7 @@ async function main() {
     },
     // Auto services
     {
-      serviceId: createdServices[10].id, // Car Repair & Maintenance
+      serviceId: createdServices[10]!.id, // Car Repair & Maintenance
       clientId: 'user-003',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1166,7 +1166,7 @@ async function main() {
       notes: 'Brake pad replacement',
     },
     {
-      serviceId: createdServices[11].id, // Vehicle Diagnostics
+      serviceId: createdServices[11]!.id, // Vehicle Diagnostics
       clientId: 'user-004',
       scheduledAt: lastWeek,
       status: 'COMPLETED',
@@ -1176,7 +1176,7 @@ async function main() {
     },
     // Event services
     {
-      serviceId: createdServices[30].id, // Party Planning
+      serviceId: createdServices[30]!.id, // Party Planning
       clientId: 'user-005',
       scheduledAt: lastMonth,
       status: 'COMPLETED',
@@ -1185,7 +1185,7 @@ async function main() {
       notes: 'Birthday party for 25 guests',
     },
     {
-      serviceId: createdServices[31].id, // Wedding Coordination
+      serviceId: createdServices[31]!.id, // Wedding Coordination
       clientId: 'user-006',
       scheduledAt: nextWeek,
       duration: 720,
@@ -1209,14 +1209,226 @@ async function main() {
     })
   }
 
+  // Generate extensive historical bookings (20-200 per service)
+  console.log('📅 Generating historical bookings for all services...')
+
+  // Helper function to generate random date in the past (2-5 months ago)
+  const getRandomPastDate = () => {
+    const now = new Date()
+    const monthsAgo = 2 + Math.random() * 3 // 2-5 months ago
+    const daysAgo = monthsAgo * 30 + Math.random() * 30 // Add some day variation
+    const pastDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000)
+
+    // Set random hour between 8 AM and 6 PM
+    pastDate.setHours(
+      8 + Math.floor(Math.random() * 10),
+      Math.floor(Math.random() * 60),
+      0,
+      0
+    )
+    return pastDate
+  }
+
+  // Helper function to generate random client ID from existing users
+  const getRandomClientId = (): string => {
+    const clientIds = [
+      'user-001',
+      'user-002',
+      'user-003',
+      'user-004',
+      'user-005',
+      'user-006',
+      'user-007',
+      'user-008',
+      'user-009',
+      'user-010',
+    ]
+    return clientIds[Math.floor(Math.random() * clientIds.length)]!
+  }
+
+  // Helper function to generate realistic booking notes
+  const getRandomBookingNote = (serviceTitle: string): string => {
+    const notes = [
+      `Great service for ${serviceTitle.toLowerCase()}`,
+      `Needed ${serviceTitle.toLowerCase()} urgently`,
+      `Regular maintenance booking`,
+      `Emergency service request`,
+      `Scheduled appointment`,
+      `Repeat customer booking`,
+      `Recommended by friend`,
+      `Found through online search`,
+      `Excellent work quality`,
+      `Very professional service`,
+    ]
+    return notes[Math.floor(Math.random() * notes.length)]!
+  }
+
+  let totalBookingsCreated = 0
+  for (let i = 0; i < createdServices.length; i++) {
+    const service = createdServices[i]
+    if (!service) continue
+
+    // Random number of bookings between 20-200 per service
+    const bookingCount = Math.floor(Math.random() * 181) + 20 // 20-200
+
+    console.log(
+      `  📝 Creating ${bookingCount} bookings for service: ${service.title}`
+    )
+
+    for (let j = 0; j < bookingCount; j++) {
+      try {
+        await prisma.booking.create({
+          data: {
+            serviceId: service.id,
+            clientId: getRandomClientId(),
+            scheduledAt: getRandomPastDate(),
+            status: 'COMPLETED', // All historical bookings are completed
+            duration: service.duration || 60 + Math.floor(Math.random() * 120), // Use service duration or random
+            totalPrice: service.price
+              ? parseFloat(service.price.toString())
+              : 50 + Math.random() * 200,
+            notes: getRandomBookingNote(service.title),
+          },
+        })
+        totalBookingsCreated++
+      } catch {
+        // Skip duplicate bookings (same client, service, time)
+        console.log(
+          `    ⚠️ Skipped duplicate booking for service ${service.id}`
+        )
+      }
+    }
+  }
+
+  // Generate reviews for historical bookings (40-200 per service)
+  console.log('⭐ Generating reviews for services...')
+
+  // Helper function to generate random rating with realistic distribution
+  const getRandomRating = (): number => {
+    const rand = Math.random()
+    if (rand < 0.6) return 5 // 60% are 5 stars
+    if (rand < 0.8) return 4 // 20% are 4 stars
+    if (rand < 0.9) return 3 // 10% are 3 stars
+    if (rand < 0.96) return 2 // 6% are 2 stars
+    return 1 // 4% are 1 star
+  }
+
+  // Helper function to generate realistic review comments
+  const getRandomReviewComment = (
+    rating: number,
+    serviceTitle: string
+  ): string => {
+    const comments = {
+      5: [
+        `Excellent ${serviceTitle.toLowerCase()}! Highly recommend.`,
+        `Outstanding work, will definitely book again.`,
+        `Perfect service, exceeded expectations.`,
+        `Amazing quality and very professional.`,
+        `Best ${serviceTitle.toLowerCase()} I've ever had.`,
+        `Five stars well deserved!`,
+        `Couldn't be happier with the results.`,
+        `Exceptional attention to detail.`,
+      ],
+      4: [
+        `Very good ${serviceTitle.toLowerCase()}, minor issues but overall satisfied.`,
+        `Good work, would use again.`,
+        `Solid service, met expectations.`,
+        `Professional and timely.`,
+        `Good value for money.`,
+        `Mostly satisfied with the work.`,
+        `Quality work with room for improvement.`,
+      ],
+      3: [
+        `Average ${serviceTitle.toLowerCase()}, nothing special.`,
+        `Okay service, got the job done.`,
+        `Decent work but not outstanding.`,
+        `Fair service for the price.`,
+        `Acceptable quality.`,
+        `Could be better but not bad.`,
+      ],
+      2: [
+        `Below expectations for ${serviceTitle.toLowerCase()}.`,
+        `Had some issues with the service.`,
+        `Not very satisfied with the quality.`,
+        `Service was delayed and incomplete.`,
+        `Poor communication during service.`,
+        `Expected better quality.`,
+      ],
+      1: [
+        `Terrible ${serviceTitle.toLowerCase()}, very disappointed.`,
+        `Poor quality work, would not recommend.`,
+        `Unprofessional and unsatisfactory.`,
+        `Complete waste of money.`,
+        `Service was not completed properly.`,
+        `Very poor experience.`,
+      ],
+    }
+    const categoryComments =
+      comments[rating as keyof typeof comments] || comments[3]
+    return categoryComments[
+      Math.floor(Math.random() * categoryComments.length)
+    ]!
+  }
+
+  let totalReviewsCreated = 0
+  for (let i = 0; i < createdServices.length; i++) {
+    const service = createdServices[i]
+    if (!service) continue
+
+    // Random number of reviews between 40-200 per service
+    const reviewCount = Math.floor(Math.random() * 161) + 40 // 40-200
+
+    console.log(
+      `  💬 Creating ${reviewCount} reviews for service: ${service.title}`
+    )
+
+    // Get unique client IDs to avoid duplicate reviews
+    const usedClients = new Set<string>()
+
+    for (let j = 0; j < reviewCount; j++) {
+      try {
+        // Get a random client that hasn't reviewed this service yet
+        let clientId: string
+        let attempts = 0
+        do {
+          clientId = getRandomClientId()
+          attempts++
+        } while (usedClients.has(clientId) && attempts < 50) // Try to avoid duplicates
+
+        if (attempts < 50) {
+          usedClients.add(clientId)
+        }
+
+        const rating = getRandomRating()
+        await prisma.review.create({
+          data: {
+            serviceId: service.id,
+            clientId: clientId,
+            rating: rating,
+            comment: getRandomReviewComment(rating, service.title),
+            createdAt: getRandomPastDate(),
+          },
+        })
+        totalReviewsCreated++
+      } catch {
+        // Skip duplicate reviews (same client and service)
+        console.log(`    ⚠️ Skipped duplicate review for service ${service.id}`)
+      }
+    }
+  }
+
   console.log('✅ Seeding finished!')
   console.log('📊 Created:')
   console.log('  - 20 contractor categories')
   console.log('  - 10 test users')
   console.log('  - 10 contractors with profiles')
-  console.log('  - 40 services across all categories (2 per category)')
+  console.log('  - 40 services across all categories (4 per contractor)')
   console.log('  - Contractor availability schedules')
   console.log('  - 24 sample bookings with realistic distribution')
+  console.log(
+    `  - ${totalBookingsCreated} historical bookings (20-200 per service)`
+  )
+  console.log(`  - ${totalReviewsCreated} service reviews (40-200 per service)`)
 }
 
 main()
