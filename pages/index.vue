@@ -20,16 +20,31 @@
             confirmation.
           </p>
 
-          <!-- Search Bar -->
+          <!-- Search Bar with suggestions -->
           <div class="mx-auto mb-8 flex max-w-2xl flex-col gap-4 sm:flex-row">
-            <div class="form-control flex-1">
+            <div class="form-control relative flex-1">
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="What service do you need?"
                 class="input input-bordered input-lg w-full"
+                @input="onSearchInput"
+                @focus="onSearchFocus"
+                @blur="hideSuggestionsSoon"
                 @keyup.enter="searchServices"
               >
+              <div
+                v-if="showSuggestions && suggestions"
+                class="absolute left-0 right-0 top-full z-20 mt-1"
+              >
+                <ul class="menu rounded-box bg-base-300 p-2 shadow">
+                  <li v-for="t in suggestions.titles" :key="`t-${t}`">
+                    <a @mousedown.prevent="onSuggestionTitleClick(t)">{{
+                      t
+                    }}</a>
+                  </li>
+                </ul>
+              </div>
             </div>
             <button class="btn btn-primary btn-lg px-8" @click="searchServices">
               <Icon name="heroicons:magnifying-glass" class="h-5 w-5" />
@@ -264,10 +279,14 @@ interface Service {
     }
   }
   bookingsCount: number
+  averageRating: number
+  reviewCount: number
 }
 
 // Reactive data
 const searchQuery = ref('')
+const showSuggestions = ref(false)
+const suggestions = ref<{ titles: string[] } | null>(null)
 
 const stats = reactive({
   contractors: 12,
@@ -379,11 +398,39 @@ const navigateToCategory = (categoryId: number) => {
 // Load services data
 onMounted(async () => {
   try {
-    const servicesResponse = await $fetch('/api/services', {
+    const servicesResponse = (await $fetch('/api/services', {
       query: { limit: 6 },
+    })) as unknown
+    const raw = (servicesResponse as Record<string, unknown>)?.services as
+      | unknown[]
+      | undefined
+    featuredServices.value = (raw || []).map((item) => {
+      const s = item as Record<string, unknown>
+      const contractor = s.contractor as Record<string, unknown>
+      const user = (contractor?.user || {}) as Record<string, unknown>
+      const count = (s._count || {}) as Record<string, unknown>
+      return {
+        id: Number(s.id as number),
+        title: s.title as string,
+        description: s.description as string,
+        category: s.category as string,
+        price: (s.price as string | null) ?? null,
+        priceType: s.priceType as string,
+        duration: (s.duration as number | null) ?? null,
+        availability: s.availability as string,
+        contractor: {
+          user: {
+            name: (user.name as string) || '',
+            image: (user.image as string) || null,
+          },
+        },
+        bookingsCount:
+          (s.bookingsCount as number) ?? (count.bookings as number) ?? 0,
+        averageRating: (s.averageRating as number) ?? 0,
+        reviewCount:
+          (s.reviewCount as number) ?? (count.reviews as number) ?? 0,
+      }
     })
-    featuredServices.value =
-      (servicesResponse as { services?: Service[] })?.services || []
 
     // Load platform stats
     const statsResponse = await $fetch('/api/platform/stats').catch(() => null)
@@ -394,4 +441,38 @@ onMounted(async () => {
     console.log('Stats not available, using mock data')
   }
 })
+
+// Suggestions helpers (lightweight fetch)
+const fetchHomeSuggestions = async (force = false) => {
+  const q = (searchQuery.value || '').trim()
+  if (!q && !force) {
+    suggestions.value = null
+    return
+  }
+  try {
+    const res = await $fetch<{ titles: string[] }>(
+      `/api/services/suggestions?q=${encodeURIComponent(q)}`
+    )
+    suggestions.value = res ?? null
+  } catch {
+    suggestions.value = null
+  }
+}
+
+const onSearchFocus = () => {
+  showSuggestions.value = true
+  fetchHomeSuggestions(true)
+}
+const hideSuggestionsSoon = () => {
+  setTimeout(() => (showSuggestions.value = false), 120)
+}
+const onSearchInput = () => {
+  showSuggestions.value = true
+  fetchHomeSuggestions()
+}
+const onSuggestionTitleClick = (t: string) => {
+  searchQuery.value = t
+  showSuggestions.value = false
+  searchServices()
+}
 </script>

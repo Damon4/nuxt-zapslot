@@ -63,8 +63,6 @@ export const useServicesSearch = () => {
   // Autocomplete suggestions
   const suggestions = ref<{
     titles: string[]
-    categories: string[]
-    locations: string[]
   } | null>(null)
   const showSuggestions = ref(false)
 
@@ -216,19 +214,21 @@ export const useServicesSearch = () => {
     }
   }
 
-  // Autocomplete fetch
-  const fetchSuggestions = async () => {
-    if (!searchQuery.value) {
+  // Autocomplete fetch (force=true will fetch default suggestions on empty query)
+  const fetchSuggestions = async (
+    opts?: { force?: boolean } | boolean
+  ): Promise<void> => {
+    const force = typeof opts === 'boolean' ? opts : opts?.force
+    const q = (searchQuery.value || '').trim()
+    if (!q && !force) {
       suggestions.value = null
       return
     }
     try {
       const res = await $fetch<{
         titles: string[]
-        categories: string[]
-        locations: string[]
-      }>(`/api/services/suggestions?q=${encodeURIComponent(searchQuery.value)}`)
-      suggestions.value = res
+      }>(`/api/services/suggestions?q=${encodeURIComponent(q)}`)
+      suggestions.value = res ?? null
     } catch {
       suggestions.value = null
     }

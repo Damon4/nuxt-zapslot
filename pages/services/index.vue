@@ -29,13 +29,7 @@
                 type="text"
                 placeholder="Web development, cleaning..."
                 class="input input-bordered"
-                @input="
-                  (e) => {
-                    debouncedSearch()
-                    showSuggestions = true
-                    fetchSuggestions()
-                  }
-                "
+                @input="onSearchInput"
                 @focus="onSearchFocus"
                 @blur="hideSuggestionsSoon"
               >
@@ -45,40 +39,9 @@
               >
                 <ul class="menu rounded-box bg-base-300 p-2 shadow">
                   <li v-for="t in suggestions.titles" :key="`t-${t}`">
-                    <a
-                      @mousedown.prevent="
-                        searchQuery = t
-                        debouncedSearch()
-                        showSuggestions = false
-                      "
-                      >{{ t }}</a
-                    >
-                  </li>
-                  <li v-if="suggestions.categories.length" class="menu-title">
-                    <span>Categories</span>
-                  </li>
-                  <li v-for="c in suggestions.categories" :key="`c-${c}`">
-                    <a
-                      @mousedown.prevent="
-                        selectedCategory = c
-                        handleFilterChange()
-                        showSuggestions = false
-                      "
-                      >{{ c }}</a
-                    >
-                  </li>
-                  <li v-if="suggestions.locations.length" class="menu-title">
-                    <span>Locations</span>
-                  </li>
-                  <li v-for="l in suggestions.locations" :key="`l-${l}`">
-                    <a
-                      @mousedown.prevent="
-                        location = l
-                        handleFilterChange()
-                        showSuggestions = false
-                      "
-                      >{{ l }}</a
-                    >
+                    <a @mousedown.prevent="onSuggestionTitleClick(t)">{{
+                      t
+                    }}</a>
                   </li>
                 </ul>
               </div>
@@ -389,16 +352,27 @@ onMounted(() => {
 // Handlers for search input focus/blur to control suggestions dropdown
 const onSearchFocus = () => {
   showSuggestions.value = true
-  if ((searchQuery.value || '').trim().length) {
-    // fire and forget
-    fetchSuggestions()
-  }
+  // Always attempt to fetch suggestions; force default set when query is empty
+  fetchSuggestions({ force: true })
 }
 
 const hideSuggestionsSoon = () => {
   setTimeout(() => {
     showSuggestions.value = false
   }, 120)
+}
+
+// Input and suggestion click handlers
+const onSearchInput = () => {
+  debouncedSearch()
+  showSuggestions.value = true
+  fetchSuggestions()
+}
+
+const onSuggestionTitleClick = (t: string) => {
+  searchQuery.value = t
+  debouncedSearch()
+  showSuggestions.value = false
 }
 
 // Saved searches local list
