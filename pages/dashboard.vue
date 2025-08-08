@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
-const { formatDate } = useDateFormat()
 
 // Page metadata
 useHead({
@@ -43,7 +42,7 @@ useHead({
           <div class="stat-title">Account Status</div>
           <div class="stat-value text-primary">Active</div>
           <div class="stat-desc">
-            Since {{ formatDate(authStore.user.createdAt) }}
+            Since <NuxtTime :datetime="authStore.user.createdAt" />
           </div>
         </div>
 
@@ -129,7 +128,7 @@ useHead({
                 <div class="badge badge-success badge-sm" />
                 <span class="flex-1">Account created</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ formatDate(authStore.user.createdAt) }}
+                  <NuxtTime :datetime="authStore.user.createdAt" />
                 </span>
               </div>
 
@@ -137,7 +136,7 @@ useHead({
                 <div class="badge badge-info badge-sm" />
                 <span class="flex-1">Profile updated</span>
                 <span class="text-base-content/70 text-xs">
-                  {{ formatDate(authStore.user.updatedAt) }}
+                  <NuxtTime :datetime="authStore.user.updatedAt" />
                 </span>
               </div>
 

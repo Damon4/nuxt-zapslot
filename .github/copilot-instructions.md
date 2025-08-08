@@ -202,6 +202,33 @@ Use DaisyUI classes for consistency:
 </dialog>
 ```
 
+### Date Formatting
+
+Always use the built-in `<NuxtTime>` component for consistent date formatting:
+
+```vue
+<!-- Relative time (preferred for user-generated content) -->
+<NuxtTime :datetime="review.createdAt" />
+<!-- Output: "2 hours ago", "Yesterday", "3 days ago" -->
+
+<!-- Absolute date with custom format -->
+<NuxtTime :datetime="user.createdAt" format="MMMM d, yyyy" />
+<!-- Output: "March 15, 2024" -->
+
+<!-- For consistent en-US locale across app -->
+<NuxtTime :datetime="booking.scheduledAt" />
+```
+
+**Configuration:**
+Set `htmlAttrs: { lang: 'en-US' }` in `nuxt.config.ts` for consistency.
+
+**Benefits:**
+- Consistent formatting across server and client
+- Automatic hydration safety
+- Built-in relative time formatting
+- Locale support
+- No custom date formatting composables needed
+
 ### TypeScript Patterns
 
 Use strict typing for components:

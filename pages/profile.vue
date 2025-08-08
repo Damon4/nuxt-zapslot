@@ -148,15 +148,6 @@ watch(
     }
   }
 )
-
-// Format date helper
-const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
 </script>
 
 <template>
@@ -208,7 +199,7 @@ const formatDate = (date: string | Date) => {
                 {{ authStore.user.email }}
               </p>
               <div class="badge badge-primary">
-                Member since {{ formatDate(authStore.user.createdAt) }}
+                Member since <NuxtTime :datetime="authStore.user.createdAt" />
               </div>
             </div>
 
@@ -338,12 +329,12 @@ const formatDate = (date: string | Date) => {
                 class="border-base-300 flex items-center justify-between border-b py-2"
               >
                 <span class="text-base-content/70">Account Created</span>
-                <span>{{ formatDate(authStore.user.createdAt) }}</span>
+                <span><NuxtTime :datetime="authStore.user.createdAt" /></span>
               </div>
 
               <div class="flex items-center justify-between py-2">
                 <span class="text-base-content/70">Last Updated</span>
-                <span>{{ formatDate(authStore.user.updatedAt) }}</span>
+                <span><NuxtTime :datetime="authStore.user.updatedAt" /></span>
               </div>
             </div>
           </div>
