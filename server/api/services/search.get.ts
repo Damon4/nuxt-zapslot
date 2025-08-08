@@ -7,9 +7,12 @@ const searchSchema = z.object({
   category: z.string().optional(),
   priceFrom: z.number().optional(),
   priceTo: z.number().optional(),
+  // availability can be a single value or comma-separated list
   availability: z.string().optional(),
   contractorId: z.number().optional(),
   minRating: z.number().min(1).max(5).optional(),
+  minReviewCount: z.number().min(0).optional(),
+  location: z.string().optional(),
   sortBy: z
     .enum(['price', 'createdAt', 'title', 'rating'])
     .default('createdAt'),
@@ -27,6 +30,9 @@ export default defineEventHandler(async (event) => {
     minRating: query.minRating ? Number(query.minRating) : undefined,
     page: query.page ? Number(query.page) : 1,
     limit: query.limit ? Number(query.limit) : 20,
+    minReviewCount: query.minReviewCount
+      ? Number(query.minReviewCount)
+      : undefined,
   })
 
   const {
@@ -37,6 +43,8 @@ export default defineEventHandler(async (event) => {
     availability,
     contractorId,
     minRating,
+    minReviewCount,
+    location,
     sortBy,
     page,
     limit,
@@ -69,11 +77,35 @@ export default defineEventHandler(async (event) => {
   }
 
   if (availability) {
-    where.availability = availability
+    // Support comma-separated multiple values
+    const values = availability
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean)
+    if (values.length > 1) {
+      where.OR = [
+        ...(where.OR || []),
+        ...values.map((val) => ({ availability: val })),
+      ]
+    } else if (values.length === 1) {
+      where.availability = values[0]
+    }
   }
 
   if (contractorId) {
     where.contractorId = contractorId
+  }
+
+  // Location filter (simple contains match on contractor.serviceArea)
+  if (location) {
+    const contractorWhere: Prisma.ContractorWhereInput =
+      (where.contractor as Prisma.ContractorWhereInput) || {}
+    contractorWhere.status = 1
+    contractorWhere.serviceArea = {
+      contains: location,
+      mode: 'insensitive',
+    }
+    where.contractor = contractorWhere
   }
 
   // Build order by
@@ -142,6 +174,13 @@ export default defineEventHandler(async (event) => {
   if (minRating !== undefined) {
     processedServices = processedServices.filter(
       (service) => service.averageRating >= minRating
+    )
+  }
+
+  // Filter by minimum review count if specified
+  if (minReviewCount !== undefined) {
+    processedServices = processedServices.filter(
+      (service) => service.reviewCount >= minReviewCount
     )
   }
 

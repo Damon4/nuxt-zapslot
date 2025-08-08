@@ -5,9 +5,11 @@ export interface ServiceSearchParams {
   category?: string
   priceFrom?: number
   priceTo?: number
-  availability?: string
+  availability?: string | string[]
   contractorId?: number
   minRating?: number
+  minReviewCount?: number
+  location?: string
   sortBy?: 'price' | 'createdAt' | 'title' | 'rating'
   page?: number
   limit?: number
@@ -50,9 +52,21 @@ export const useServicesSearch = () => {
   const searchQuery = ref('')
   const selectedCategory = ref('')
   const maxPrice = ref('')
+  const minPrice = ref('')
   const minRating = ref('')
+  const minReviewCount = ref('')
+  const location = ref('')
+  const availability = ref<string[]>([])
   const sortBy = ref<'price' | 'createdAt' | 'title' | 'rating'>('createdAt')
   const currentPage = ref(1)
+
+  // Autocomplete suggestions
+  const suggestions = ref<{
+    titles: string[]
+    categories: string[]
+    locations: string[]
+  } | null>(null)
+  const showSuggestions = ref(false)
 
   // Build search params for useFetch
   const searchParams = computed(() => {
@@ -70,6 +84,11 @@ export const useServicesSearch = () => {
       params.append('category', selectedCategory.value)
     }
 
+    if (minPrice.value) {
+      const priceFrom = parseFloat(minPrice.value)
+      if (!isNaN(priceFrom)) params.append('priceFrom', priceFrom.toString())
+    }
+
     if (maxPrice.value) {
       const priceTo = parseFloat(maxPrice.value)
       if (!isNaN(priceTo)) {
@@ -82,6 +101,20 @@ export const useServicesSearch = () => {
       if (!isNaN(rating) && rating >= 1 && rating <= 5) {
         params.append('minRating', rating.toString())
       }
+    }
+
+    if (minReviewCount.value) {
+      const count = parseInt(minReviewCount.value)
+      if (!isNaN(count) && count >= 0)
+        params.append('minReviewCount', count.toString())
+    }
+
+    if (location.value) {
+      params.append('location', location.value)
+    }
+
+    if (availability.value.length) {
+      params.append('availability', availability.value.join(','))
     }
 
     return params.toString()
@@ -129,9 +162,76 @@ export const useServicesSearch = () => {
     searchQuery.value = ''
     selectedCategory.value = ''
     maxPrice.value = ''
+    minPrice.value = ''
     minRating.value = ''
+    minReviewCount.value = ''
+    location.value = ''
+    availability.value = []
     sortBy.value = 'createdAt'
     currentPage.value = 1
+  }
+
+  // Saved searches & history (localStorage)
+  const STORAGE_KEY = 'zapslot:service-searches'
+  const saveCurrentSearch = () => {
+    try {
+      const entry = {
+        q: searchQuery.value,
+        category: selectedCategory.value,
+        priceFrom: minPrice.value,
+        priceTo: maxPrice.value,
+        minRating: minRating.value,
+        minReviewCount: minReviewCount.value,
+        location: location.value,
+        availability: availability.value,
+        sortBy: sortBy.value,
+        ts: Date.now(),
+      }
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+      existing.unshift(entry)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing.slice(0, 10)))
+    } catch {
+      // ignore localStorage errors
+    }
+  }
+
+  type SavedSearch = {
+    q: string
+    category: string
+    priceFrom: string
+    priceTo: string
+    minRating: string
+    minReviewCount: string
+    location: string
+    availability: string[]
+    sortBy: 'price' | 'createdAt' | 'title' | 'rating'
+    ts: number
+  }
+
+  const getSavedSearches = (): SavedSearch[] => {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+    } catch {
+      return []
+    }
+  }
+
+  // Autocomplete fetch
+  const fetchSuggestions = async () => {
+    if (!searchQuery.value) {
+      suggestions.value = null
+      return
+    }
+    try {
+      const res = await $fetch<{
+        titles: string[]
+        categories: string[]
+        locations: string[]
+      }>(`/api/services/suggestions?q=${encodeURIComponent(searchQuery.value)}`)
+      suggestions.value = res
+    } catch {
+      suggestions.value = null
+    }
   }
 
   // Computed pagination pages for UI
@@ -168,7 +268,11 @@ export const useServicesSearch = () => {
     searchQuery,
     selectedCategory,
     maxPrice,
+    minPrice,
     minRating,
+    minReviewCount,
+    location,
+    availability,
     sortBy,
     currentPage: readonly(currentPage),
 
@@ -183,5 +287,11 @@ export const useServicesSearch = () => {
     changePage,
     clearFilters,
     refresh,
+    // suggestions & saved
+    suggestions,
+    showSuggestions,
+    fetchSuggestions,
+    saveCurrentSearch,
+    getSavedSearches,
   }
 }

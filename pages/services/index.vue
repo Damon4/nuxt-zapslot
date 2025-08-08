@@ -19,8 +19,8 @@
       <div class="card bg-base-200 mb-8 shadow-lg">
         <div class="card-body">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
-            <!-- Search Input -->
-            <div class="form-control">
+            <!-- Search Input with suggestions -->
+            <div class="form-control relative">
               <label class="label">
                 <span class="label-text">Search services</span>
               </label>
@@ -29,8 +29,59 @@
                 type="text"
                 placeholder="Web development, cleaning..."
                 class="input input-bordered"
-                @input="debouncedSearch"
+                @input="
+                  (e) => {
+                    debouncedSearch()
+                    showSuggestions = true
+                    fetchSuggestions()
+                  }
+                "
+                @focus="onSearchFocus"
+                @blur="hideSuggestionsSoon"
               >
+              <div
+                v-if="showSuggestions && suggestions"
+                class="absolute left-0 right-0 top-full z-20 mt-1"
+              >
+                <ul class="menu rounded-box bg-base-300 p-2 shadow">
+                  <li v-for="t in suggestions.titles" :key="`t-${t}`">
+                    <a
+                      @mousedown.prevent="
+                        searchQuery = t
+                        debouncedSearch()
+                        showSuggestions = false
+                      "
+                      >{{ t }}</a
+                    >
+                  </li>
+                  <li v-if="suggestions.categories.length" class="menu-title">
+                    <span>Categories</span>
+                  </li>
+                  <li v-for="c in suggestions.categories" :key="`c-${c}`">
+                    <a
+                      @mousedown.prevent="
+                        selectedCategory = c
+                        handleFilterChange()
+                        showSuggestions = false
+                      "
+                      >{{ c }}</a
+                    >
+                  </li>
+                  <li v-if="suggestions.locations.length" class="menu-title">
+                    <span>Locations</span>
+                  </li>
+                  <li v-for="l in suggestions.locations" :key="`l-${l}`">
+                    <a
+                      @mousedown.prevent="
+                        location = l
+                        handleFilterChange()
+                        showSuggestions = false
+                      "
+                      >{{ l }}</a
+                    >
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <!-- Category Filter -->
@@ -54,7 +105,7 @@
               </select>
             </div>
 
-            <!-- Price Range -->
+            <!-- Price Range (Max) -->
             <div class="form-control">
               <label class="label">
                 <span class="label-text">Max Price</span>
@@ -63,6 +114,20 @@
                 v-model="maxPrice"
                 type="number"
                 placeholder="100"
+                class="input input-bordered"
+                @input="handleFilterChange"
+              >
+            </div>
+
+            <!-- Min Price -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Min Price</span>
+              </label>
+              <input
+                v-model="minPrice"
+                type="number"
+                placeholder="0"
                 class="input input-bordered"
                 @input="handleFilterChange"
               >
@@ -101,6 +166,94 @@
                 <option value="price">Price: Low to High</option>
                 <option value="title">Alphabetical</option>
               </select>
+            </div>
+
+            <!-- Availability -->
+            <div class="form-control md:col-span-2">
+              <label class="label">
+                <span class="label-text">Availability</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <label class="label cursor-pointer gap-2">
+                  <input
+                    v-model="availability"
+                    type="checkbox"
+                    value="WEEKDAYS"
+                    class="checkbox"
+                    @change="handleFilterChange"
+                  >
+                  <span class="label-text">Weekdays</span>
+                </label>
+                <label class="label cursor-pointer gap-2">
+                  <input
+                    v-model="availability"
+                    type="checkbox"
+                    value="WEEKENDS"
+                    class="checkbox"
+                    @change="handleFilterChange"
+                  >
+                  <span class="label-text">Weekends</span>
+                </label>
+                <label class="label cursor-pointer gap-2">
+                  <input
+                    v-model="availability"
+                    type="checkbox"
+                    value="MORNINGS"
+                    class="checkbox"
+                    @change="handleFilterChange"
+                  >
+                  <span class="label-text">Mornings</span>
+                </label>
+                <label class="label cursor-pointer gap-2">
+                  <input
+                    v-model="availability"
+                    type="checkbox"
+                    value="EVENINGS"
+                    class="checkbox"
+                    @change="handleFilterChange"
+                  >
+                  <span class="label-text">Evenings</span>
+                </label>
+                <label class="label cursor-pointer gap-2">
+                  <input
+                    v-model="availability"
+                    type="checkbox"
+                    value="FLEXIBLE"
+                    class="checkbox"
+                    @change="handleFilterChange"
+                  >
+                  <span class="label-text">Flexible</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Location</span>
+              </label>
+              <input
+                v-model="location"
+                type="text"
+                placeholder="City or Area"
+                class="input input-bordered"
+                @input="handleFilterChange"
+              >
+            </div>
+
+            <!-- Min Reviews -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Min Reviews</span>
+              </label>
+              <input
+                v-model="minReviewCount"
+                type="number"
+                min="0"
+                placeholder="0"
+                class="input input-bordered"
+                @input="handleFilterChange"
+              >
             </div>
           </div>
         </div>
@@ -160,7 +313,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 // Import custom composables
 const { categories } = useCategories()
@@ -170,16 +323,25 @@ const {
   searchQuery,
   selectedCategory,
   maxPrice,
+  minPrice,
   minRating,
+  minReviewCount,
+  location,
+  availability,
   sortBy,
   pagination,
   paginationPages,
   hasResults,
   hasMultiplePages,
   debouncedSearch,
+  saveCurrentSearch,
+  getSavedSearches,
   handleFilterChange,
   changePage,
   clearFilters,
+  suggestions,
+  showSuggestions,
+  fetchSuggestions,
 } = useServicesSearch()
 
 definePageMeta({
@@ -223,4 +385,55 @@ onMounted(() => {
       | 'rating'
   }
 })
+
+// Handlers for search input focus/blur to control suggestions dropdown
+const onSearchFocus = () => {
+  showSuggestions.value = true
+  if ((searchQuery.value || '').trim().length) {
+    // fire and forget
+    fetchSuggestions()
+  }
+}
+
+const hideSuggestionsSoon = () => {
+  setTimeout(() => {
+    showSuggestions.value = false
+  }, 120)
+}
+
+// Saved searches local list
+type SavedSearch = {
+  q: string
+  category: string
+  priceFrom: string
+  priceTo: string
+  minRating: string
+  minReviewCount: string
+  location: string
+  availability: string[]
+  sortBy: 'price' | 'createdAt' | 'title' | 'rating'
+  ts: number
+}
+
+const savedSearches = ref<SavedSearch[]>(getSavedSearches())
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const onSaveSearch = () => {
+  saveCurrentSearch()
+  savedSearches.value = getSavedSearches()
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const loadSavedSearch = (item: SavedSearch) => {
+  searchQuery.value = item.q
+  selectedCategory.value = item.category
+  minPrice.value = item.priceFrom
+  maxPrice.value = item.priceTo
+  minRating.value = item.minRating
+  minReviewCount.value = item.minReviewCount
+  location.value = item.location
+  availability.value = [...item.availability]
+  sortBy.value = item.sortBy
+  handleFilterChange()
+}
 </script>
