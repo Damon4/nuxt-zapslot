@@ -15,10 +15,8 @@ const quickBookingSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    // Read request body first (critical pattern)
+    // Required order: readBody() → auth check (Nuxt 4)
     const body = await readBody(event)
-
-    // Then check authorization
     const session = await requireAuth(event)
 
     const contractor = await prisma.contractor.findUnique({

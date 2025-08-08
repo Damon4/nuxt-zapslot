@@ -9,10 +9,8 @@ const statusSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    // ✅ CRITICAL: Read request body first
+    // Required order: readBody() → auth check (Nuxt 4)
     const body = await readBody(event)
-
-    // ✅ CORRECT: Then check authorization
     const session = await requireAuth(event)
     const bookingId = getRouterParam(event, 'id')
 

@@ -9,7 +9,7 @@ const reviewSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   try {
-    // Read body first (critical project rule)
+    // Required order: readBody() → auth check (Nuxt 4)
     const body = await readBody(event)
     const session = await requireAuth(event)
 

@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Read request body FIRST - before better-auth processing
+    // Required order: readBody() → auth check (Nuxt 4)
     const body: { name?: string } = await readBody(event)
 
     // Get the session from the request using better-auth

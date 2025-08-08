@@ -17,9 +17,9 @@ ZapSlot is a comprehensive service booking platform built with Nuxt 4, featuring
 
 ### 1. API Development Patterns
 
-**⚠️ CRITICAL: Request Body Reading Order**
+**⚠️ CRITICAL: Request Body Reading Order (CONFIRMED in Nuxt 4)**
 
-When working with Nuxt 4 API endpoints, **always read request body FIRST**:
+When working with Nuxt 4 API endpoints, **always read request body FIRST** (this issue persists from Nuxt 3):
 
 ```typescript
 export default defineEventHandler(async (event) => {
@@ -39,9 +39,9 @@ export default defineEventHandler(async (event) => {
 
 **Never do this:**
 ```typescript
-// ❌ INCORRECT: Authorization first will break readBody()
+// ❌ INCORRECT: Authorization first will cause readBody() to hang in Nuxt 4!
 const session = await requireAuth(event)
-const body = await readBody(event) // May not work!
+const body = await readBody(event) // Will hang indefinitely!
 ```
 
 ### 2. Language Standards
